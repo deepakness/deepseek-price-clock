@@ -2,9 +2,9 @@
 
 Chrome extension (Manifest V3) that shows DeepSeek API pricing at a glance. The toolbar icon shows the DeepSeek whale on green during off-peak (half price) and on red during peak, so one look tells you whether to run the job now or queue it for the cheap window.
 
-<!-- Replace these placeholders with real screenshots: open this README on GitHub, click the pencil icon, and drag your images onto these lines. GitHub uploads and rewrites the URLs for you. -->
-![Toolbar icon showing green for off-peak and red for peak](https://via.placeholder.com/640x160?text=Drag+screenshot+1+here+-+toolbar+icons)
-![Popup with live countdown, price windows, and rates](https://via.placeholder.com/380x560?text=Drag+screenshot+2+here+-+popup)
+<img width="363" height="134" alt="image" src="https://github.com/user-attachments/assets/c7245722-88d9-4473-bc2b-82cdc9695522" />
+
+<img width="607" height="754" alt="image" src="https://github.com/user-attachments/assets/ef7ed554-534c-4308-9b9b-71c63c72b93f" />
 
 ## What you get
 
