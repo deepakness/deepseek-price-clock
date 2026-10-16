@@ -1,0 +1,612 @@
+/* DeepSeek Price Clock popup — mirrors deepakness.com/deepseek palette & layout */
+:root {
+  color-scheme: light dark;
+
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Roboto Mono", monospace;
+
+  --bg: #f7faff;
+  --surface: #ffffff;
+  --surface-hover: #ecf2ff;
+  --border: #d8e0ed;
+  --text: #0f172a;
+  --text-muted: #4b5563;
+  --text-soft: #6b7280;
+  --link: #3364ff;
+
+  --ds-peak-text: #c62828;
+  --ds-peak-bg: #ffebee;
+  --ds-peak-solid: #ef4444;
+  --ds-off-text: #1b7d2f;
+  --ds-off-bg: #e8f5e9;
+  --ds-off-solid: #22c55e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121a28;
+    --surface: #1a2436;
+    --surface-hover: #243247;
+    --border: #3d4f6a;
+    --text: #eef3f9;
+    --text-muted: #c5cedb;
+    --text-soft: #aeb9ca;
+    --link: #a3c4ff;
+
+    --ds-peak-text: #ffc1c1;
+    --ds-peak-bg: rgba(198, 40, 40, 0.38);
+    --ds-peak-solid: #f87171;
+    --ds-off-text: #bbf7d0;
+    --ds-off-bg: rgba(27, 125, 47, 0.4);
+    --ds-off-solid: #4ade80;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  padding: 12px 14px 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header bar */
+.ds-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ds-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ds-brand-mark {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex: none;
+}
+
+.ds-brand-text {
+  min-width: 0;
+}
+
+.ds-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.ds-tz {
+  display: block;
+  font-size: 11px;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+  flex: none;
+}
+
+.ds-toggle-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ds-toggle-btn + .ds-toggle-btn {
+  border-left: 1px solid var(--border);
+}
+
+.ds-toggle-btn:hover {
+  color: var(--text);
+}
+
+.ds-toggle-btn.ds-toggle-active {
+  background: #3364ff;
+  color: #ffffff;
+}
+
+/* Main clock card */
+.ds-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ds-hero {
+  padding: 13px 15px 12px;
+  transition: background-color 0.25s ease;
+}
+
+.ds-hero-off {
+  background: var(--ds-off-bg);
+}
+
+.ds-hero-peak {
+  background: var(--ds-peak-bg);
+}
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.ds-hero-off .ds-badge {
+  color: var(--ds-off-text);
+}
+
+.ds-hero-peak .ds-badge {
+  color: var(--ds-peak-text);
+}
+
+.ds-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.ds-count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.ds-hero-off .ds-count {
+  color: var(--ds-off-text);
+}
+
+.ds-hero-peak .ds-count {
+  color: var(--ds-peak-text);
+}
+
+.ds-count-unit {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.78;
+}
+
+.ds-until {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 9px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.ds-hero-off .ds-until {
+  color: var(--ds-off-text);
+  border-top-color: color-mix(in srgb, var(--ds-off-text) 22%, transparent);
+}
+
+.ds-hero-peak .ds-until {
+  color: var(--ds-peak-text);
+  border-top-color: color-mix(in srgb, var(--ds-peak-text) 22%, transparent);
+}
+
+.ds-until-arrow {
+  font-family: var(--font-mono);
+  opacity: 0.65;
+}
+
+.ds-progress {
+  height: 6px;
+  margin-top: 9px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ds-hero-off .ds-progress {
+  background: color-mix(in srgb, var(--ds-off-text) 18%, transparent);
+}
+
+.ds-hero-peak .ds-progress {
+  background: color-mix(in srgb, var(--ds-peak-text) 18%, transparent);
+}
+
+.ds-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+.ds-hero-off .ds-progress-fill {
+  background: var(--ds-off-solid);
+}
+
+.ds-hero-peak .ds-progress-fill {
+  background: var(--ds-peak-solid);
+}
+
+/* 24-hour timeline bar */
+.ds-strip {
+  padding: 11px 15px 9px;
+  border-top: 1px solid var(--border);
+}
+
+.ds-timeline {
+  position: relative;
+  height: 8px;
+}
+
+.ds-track {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+}
+
+.ds-seg {
+  height: 100%;
+}
+
+.ds-seg-peak {
+  background: var(--ds-peak-solid);
+  opacity: 0.5;
+}
+
+.ds-seg-off {
+  background: var(--ds-off-solid);
+  opacity: 0.55;
+}
+
+.ds-seg:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.ds-seg:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.ds-now {
+  position: absolute;
+  top: -3px;
+  height: 14px;
+  width: 2px;
+  background: var(--text);
+  border-radius: 1px;
+  transform: translateX(-1px);
+}
+
+.ds-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-soft);
+}
+
+/* Price windows schedule */
+.ds-windows {
+  padding: 0 15px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.ds-windows-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.ds-windows-label {
+  padding: 8px 0 3px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+}
+
+.ds-windows-table th,
+.ds-windows-table td {
+  padding: 5.5px 0;
+  border-top: 1px solid var(--border);
+  font-weight: 400;
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.ds-windows-table tr:first-child th,
+.ds-windows-table tr:first-child td {
+  border-top: none;
+}
+
+.ds-win-kind {
+  width: 1%;
+  padding-right: 8px !important;
+  white-space: nowrap;
+  font-size: 11.5px;
+}
+
+.ds-win-peak .ds-win-kind {
+  color: var(--ds-peak-text);
+}
+
+.ds-win-off .ds-win-kind {
+  color: var(--ds-off-text);
+}
+
+.ds-win-range {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+}
+
+.ds-win-meta {
+  width: 1%;
+  padding-left: 8px !important;
+  text-align: right !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.ds-win-current .ds-win-kind {
+  font-weight: 700;
+}
+
+.ds-win-current.ds-win-peak .ds-win-range,
+.ds-win-current.ds-win-peak .ds-win-meta {
+  color: var(--ds-peak-text);
+}
+
+.ds-win-current.ds-win-off .ds-win-range,
+.ds-win-current.ds-win-off .ds-win-meta {
+  color: var(--ds-off-text);
+}
+
+/* Rates card */
+.ds-rates {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.ds-rates-now {
+  padding: 10px 15px 11px;
+  transition: background-color 0.25s ease;
+}
+
+.ds-rates-off .ds-rates-now {
+  background: var(--ds-off-bg);
+}
+
+.ds-rates-peak .ds-rates-now {
+  background: var(--ds-peak-bg);
+}
+
+.ds-rates-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.ds-rates-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ds-rates-off .ds-rates-now .ds-rates-label {
+  color: var(--ds-off-text);
+}
+
+.ds-rates-peak .ds-rates-now .ds-rates-label {
+  color: var(--ds-peak-text);
+}
+
+.ds-rates-unit {
+  font-size: 10.5px;
+  color: var(--text-soft);
+}
+
+.ds-rates-off .ds-rates-now .ds-rates-unit {
+  color: var(--ds-off-text);
+  opacity: 0.8;
+}
+
+.ds-rates-peak .ds-rates-now .ds-rates-unit {
+  color: var(--ds-peak-text);
+  opacity: 0.8;
+}
+
+.ds-rate-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.ds-rate-name {
+  margin: 0 0 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.ds-rates-off .ds-rates-now .ds-rate-name {
+  color: var(--ds-off-text);
+}
+
+.ds-rates-peak .ds-rates-now .ds-rate-name {
+  color: var(--ds-peak-text);
+}
+
+.ds-rate-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.ds-rate-cell {
+  margin: 0;
+}
+
+.ds-rate-kind {
+  display: block;
+  font-size: 10.5px;
+  opacity: 0.78;
+}
+
+.ds-rates-off .ds-rates-now .ds-rate-kind {
+  color: var(--ds-off-text);
+}
+
+.ds-rates-peak .ds-rates-now .ds-rate-kind {
+  color: var(--ds-peak-text);
+}
+
+.ds-amt {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-rates-now .ds-amt {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ds-rates-off .ds-rates-now .ds-amt {
+  color: var(--ds-off-text);
+}
+
+.ds-rates-peak .ds-rates-now .ds-amt {
+  color: var(--ds-peak-text);
+}
+
+.ds-rates-next {
+  padding: 7px 15px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.ds-rates-next .ds-rates-label {
+  color: var(--text-soft);
+  margin-bottom: 4px;
+}
+
+.ds-rates-next .ds-amt {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+/* Footer */
+.ds-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.ds-foot a {
+  color: var(--link);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.ds-foot a:hover {
+  text-decoration: underline;
+}
+
+.ds-foot-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ds-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.ds-legend-sep {
+  opacity: 0.6;
+}
+
+.ds-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2.5px;
+  flex: none;
+}
+
+.ds-swatch-off {
+  background: var(--ds-off-solid);
+}
+
+.ds-swatch-peak {
+  background: var(--ds-peak-solid);
+}
