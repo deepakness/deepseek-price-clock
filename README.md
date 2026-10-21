@@ -9,7 +9,7 @@ Chrome extension (Manifest V3) that shows DeepSeek API pricing at a glance. The 
 ## What you get
 
 - Green icon = off-peak (half price), red icon = peak. Hover shows when the window flips.
-- Popup with a live countdown, 24-hour price timeline, upcoming window schedule, and current Flash/Pro rates.
+- Popup with a live countdown, 24-hour price timeline, upcoming window schedule, and current Flash/Pro rates (input, cached input, output).
 - Local/UTC toggle. Weekends and Chinese public holidays are off-peak all day.
 - Optional desktop notification when the price flips between peak and off-peak. Turn it on with the toggle in the popup; Chrome asks for the notifications permission the first time.
 - Fully offline. No host permissions, no network calls.

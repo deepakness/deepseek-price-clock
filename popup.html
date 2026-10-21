@@ -64,46 +64,32 @@
         </p>
         <span class="ds-rates-unit">per 1M tokens</span>
       </div>
-      <div class="ds-rate-row">
-        <div class="ds-rate-model">
-          <p class="ds-rate-name">DeepSeek V4.1 Flash</p>
-          <div class="ds-rate-pair">
-            <p class="ds-rate-cell">
-              <span class="ds-rate-kind">input</span>
-              <span class="ds-amt" data-off="$0.15" data-peak="$0.30">$0.15</span>
-            </p>
-            <p class="ds-rate-cell">
-              <span class="ds-rate-kind">output</span>
-              <span class="ds-amt" data-off="$0.60" data-peak="$1.20">$0.60</span>
-            </p>
-          </div>
-        </div>
-        <div class="ds-rate-model">
-          <p class="ds-rate-name">DeepSeek V4 Pro</p>
-          <div class="ds-rate-pair">
-            <p class="ds-rate-cell">
-              <span class="ds-rate-kind">input</span>
-              <span class="ds-amt" data-off="$0.66" data-peak="$1.32">$0.66</span>
-            </p>
-            <p class="ds-rate-cell">
-              <span class="ds-rate-kind">output</span>
-              <span class="ds-amt" data-off="$1.98" data-peak="$3.96">$1.98</span>
-            </p>
-          </div>
-        </div>
+      <div class="ds-rate-grid">
+        <span aria-hidden="true"></span>
+        <span class="ds-rate-kind" title="Input tokens, cache miss">input</span>
+        <span class="ds-rate-kind" title="Input tokens, cache hit">cached</span>
+        <span class="ds-rate-kind">output</span>
+        <p class="ds-rate-name">V4.1 Flash</p>
+        <span class="ds-amt" data-off="$0.15" data-peak="$0.30">$0.15</span>
+        <span class="ds-amt" data-off="$0.003" data-peak="$0.006">$0.003</span>
+        <span class="ds-amt" data-off="$0.60" data-peak="$1.20">$0.60</span>
+        <p class="ds-rate-name">V4 Pro</p>
+        <span class="ds-amt" data-off="$0.66" data-peak="$1.32">$0.66</span>
+        <span class="ds-amt" data-off="$0.022" data-peak="$0.044">$0.022</span>
+        <span class="ds-amt" data-off="$1.98" data-peak="$3.96">$1.98</span>
       </div>
     </div>
     <div class="ds-rates-next">
       <p class="ds-rates-label" id="ds-rates-next-label">Peak rates</p>
-      <div class="ds-rate-row">
-        <div class="ds-rate-pair">
-          <p class="ds-rate-cell"><span class="ds-amt" data-off="$0.15" data-peak="$0.30">$0.30</span></p>
-          <p class="ds-rate-cell"><span class="ds-amt" data-off="$0.60" data-peak="$1.20">$1.20</span></p>
-        </div>
-        <div class="ds-rate-pair">
-          <p class="ds-rate-cell"><span class="ds-amt" data-off="$0.66" data-peak="$1.32">$1.32</span></p>
-          <p class="ds-rate-cell"><span class="ds-amt" data-off="$1.98" data-peak="$3.96">$3.96</span></p>
-        </div>
+      <div class="ds-rate-grid">
+        <p class="ds-rate-name">V4.1 Flash</p>
+        <span class="ds-amt" data-off="$0.15" data-peak="$0.30">$0.30</span>
+        <span class="ds-amt" data-off="$0.003" data-peak="$0.006">$0.006</span>
+        <span class="ds-amt" data-off="$0.60" data-peak="$1.20">$1.20</span>
+        <p class="ds-rate-name">V4 Pro</p>
+        <span class="ds-amt" data-off="$0.66" data-peak="$1.32">$1.32</span>
+        <span class="ds-amt" data-off="$0.022" data-peak="$0.044">$0.044</span>
+        <span class="ds-amt" data-off="$1.98" data-peak="$3.96">$3.96</span>
       </div>
     </div>
   </div>

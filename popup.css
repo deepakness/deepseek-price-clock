@@ -475,14 +475,17 @@ body {
   opacity: 0.8;
 }
 
-.ds-rate-row {
+/* One row per model with input / cached / output columns, so both halves of
+   the card line up under the same labels. */
+.ds-rate-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) repeat(3, 60px);
+  align-items: baseline;
+  gap: 2px 8px;
 }
 
 .ds-rate-name {
-  margin: 0 0 3px;
+  margin: 0;
   font-size: 11.5px;
   font-weight: 600;
 }
@@ -495,14 +498,9 @@ body {
   color: var(--ds-peak-text);
 }
 
-.ds-rate-pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.ds-rate-cell {
-  margin: 0;
+.ds-rates-next .ds-rate-name {
+  font-weight: 500;
+  color: var(--text-soft);
 }
 
 .ds-rate-kind {
