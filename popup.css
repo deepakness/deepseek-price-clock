@@ -556,6 +556,79 @@ body {
 }
 
 /* Footer */
+/* Flip alerts toggle */
+.ds-alerts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 9px 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.ds-alerts:hover {
+  background: var(--surface-hover);
+}
+
+.ds-alerts-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ds-alerts-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ds-alerts-hint {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.ds-switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 17px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ds-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.ds-switch:checked {
+  background: #3364ff;
+}
+
+.ds-switch:checked::after {
+  transform: translateX(13px);
+}
+
+.ds-switch:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
 .ds-foot {
   display: flex;
   align-items: center;

@@ -11,7 +11,14 @@ Chrome extension (Manifest V3) that shows DeepSeek API pricing at a glance. The 
 - Green icon = off-peak (half price), red icon = peak. Hover shows when the window flips.
 - Popup with a live countdown, 24-hour price timeline, upcoming window schedule, and current Flash/Pro rates.
 - Local/UTC toggle. Weekends and Chinese public holidays are off-peak all day.
+- Optional desktop notification when the price flips between peak and off-peak. Turn it on with the toggle in the popup; Chrome asks for the notifications permission the first time.
 - Fully offline. No host permissions, no network calls.
+
+> [!IMPORTANT]
+> **Not seeing flip notifications?** Your OS has to allow Chrome to show them, and Chrome has to be running at the flip.
+> - **macOS:** System Settings → Notifications → Google Chrome → turn on **Allow notifications** (often off by default). Focus / Do Not Disturb hides banners.
+> - **Windows:** Settings → System → Notifications → turn on **Google Chrome**. Focus / Do Not Disturb hides banners. To get alerts with all Chrome windows closed, enable **Continue running background apps when Google Chrome is closed** in `chrome://settings/system`.
+> - **Linux:** depends on your desktop's notification settings; make sure Chrome isn't muted and Do Not Disturb is off.
 
 ## Install in Chrome
 
@@ -26,7 +33,7 @@ To update later, re-download the ZIP (or `git pull`) and click the reload icon o
 ## How it works
 
 - `price.js` holds the peak/off-peak logic (UTC windows, Beijing weekends, CN holidays). It is ported from [deepakness.com/deepseek](https://deepakness.com/deepseek/) — keep the two in sync.
-- `background.js` recomputes the window on an alarm tick and swaps the toolbar icon.
+- `background.js` recomputes the window on an alarm tick, swaps the toolbar icon, and sends the flip notification when alerts are on.
 - `popup.html` / `popup.css` / `popup.js` render the countdown, timeline, schedule, and rates.
 
 `CN_HOLIDAYS` in `price.js` needs the next year's Chinese public holidays once the State Council announces them (usually November).

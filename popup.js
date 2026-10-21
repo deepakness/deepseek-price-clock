@@ -236,6 +236,40 @@ for (const btn of toggleBtns) {
   btn.addEventListener("click", () => setZone(btn.getAttribute("data-zone")));
 }
 
+// Flip alerts. The notifications permission is optional and requested the
+// first time alerts are turned on; background.js sends the notifications.
+const alertsToggleEl = document.getElementById("ds-alerts-toggle");
+const alertsHintEl = document.getElementById("ds-alerts-hint");
+const ALERTS_HINT = alertsHintEl.textContent;
+
+function setAlerts(on) {
+  alertsToggleEl.checked = on;
+  chrome.storage.local.set({ notify: on });
+}
+
+alertsToggleEl.addEventListener("change", () => {
+  alertsHintEl.textContent = ALERTS_HINT;
+  if (!alertsToggleEl.checked) {
+    setAlerts(false);
+    return;
+  }
+  // Must run inside the click gesture, before any await.
+  chrome.permissions
+    .request({ permissions: ["notifications"] })
+    .then((granted) => {
+      setAlerts(granted);
+      if (!granted) alertsHintEl.textContent = "Notification permission was declined";
+    })
+    .catch(() => setAlerts(false));
+});
+
+Promise.all([
+  chrome.storage.local.get("notify"),
+  chrome.permissions.contains({ permissions: ["notifications"] }),
+]).then(([{ notify }, granted]) => {
+  alertsToggleEl.checked = Boolean(notify && granted);
+});
+
 buildFormatters();
 buildWindowRows(SWITCH_MINUTES.length);
 renderTzLabel();

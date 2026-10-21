@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "DeepSeek Price Clock",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Toolbar icon shows DeepSeek API pricing at a glance: green for off-peak (half price), red for peak.",
-  "permissions": ["alarms"],
+  "permissions": ["alarms", "storage"],
+  "optional_permissions": ["notifications"],
   "action": {
     "default_title": "DeepSeek Price Clock",
     "default_popup": "popup.html",
