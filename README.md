@@ -53,7 +53,8 @@ If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it
 
 1. Bump `version` in `manifest.json`, commit, and push.
 2. Tag and push: `git tag v1.3.0 && git push origin v1.3.0` (the tag must match the version).
-3. The [Release workflow](.github/workflows/release.yml) builds both browsers and attaches `deepseek-price-clock-chrome.zip`, `deepseek-price-clock-firefox.zip`, and, when the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repo secrets hold [AMO API keys](https://addons.mozilla.org/developers/addon/api/key/), the signed `deepseek-price-clock-firefox.xpi`.
+3. The [Release workflow](.github/workflows/release.yml) builds both browsers and attaches `deepseek-price-clock-chrome.zip` and `deepseek-price-clock-firefox.zip` to a new GitHub release.
+4. Run `./sign-firefox.sh` locally. It has Mozilla sign the Firefox build as an unlisted add-on and attaches `deepseek-price-clock-firefox.xpi` to the same release. It reads [AMO API keys](https://addons.mozilla.org/developers/addon/api/key/) from the macOS Keychain; the top of the script shows how to store them. Mozilla signs each version only once.
 
 ## License
 

@@ -1,11 +1,11 @@
 name: Release
 
 # Push a tag like v1.3.0 (matching "version" in manifest.json) to build the
-# Chrome and Firefox packages and attach them to a GitHub release. When the
-# AMO_JWT_ISSUER and AMO_JWT_SECRET secrets are set, the Firefox build is also
-# signed by Mozilla as an unlisted (self-distributed) add-on and attached as an
-# .xpi that installs permanently. Run the workflow manually with an existing tag
-# to rebuild and re-upload, e.g. after adding the secrets.
+# Chrome and Firefox packages and attach them to a GitHub release. The signed
+# Firefox .xpi is normally added afterwards with ./sign-firefox.sh on a local
+# machine. If the AMO_JWT_ISSUER and AMO_JWT_SECRET repo secrets are ever set,
+# this workflow signs and attaches it instead. Run the workflow manually with an
+# existing tag to rebuild and re-upload.
 
 on:
   push:
