@@ -1,6 +1,8 @@
-importScripts("price.js");
+// Chrome runs this file as a service worker and loads price.js here. Firefox
+// runs it as a background script and loads price.js from the manifest first.
+if (typeof importScripts === "function") importScripts("price.js");
 
-// A flip older than this when the worker notices it (laptop asleep, Chrome
+// A flip older than this when the worker notices it (laptop asleep, browser
 // closed) is skipped rather than announced late.
 const NOTIFY_GRACE_MS = 5 * 60000;
 
@@ -80,7 +82,7 @@ function refresh() {
   return queue;
 }
 
-// The popup can close while Chrome shows the permission prompt, losing its
+// The popup can close while the browser shows the permission prompt, losing its
 // callback, so a grant from the alerts toggle turns alerts on here too.
 chrome.permissions.onAdded.addListener((perms) => {
   if (perms.permissions && perms.permissions.includes("notifications")) {

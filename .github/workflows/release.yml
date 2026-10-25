@@ -1,0 +1,71 @@
+name: Release
+
+# Push a tag like v1.3.0 (matching "version" in manifest.json) to build the
+# Chrome and Firefox packages and attach them to a GitHub release. When the
+# AMO_JWT_ISSUER and AMO_JWT_SECRET secrets are set, the Firefox build is also
+# signed by Mozilla as an unlisted (self-distributed) add-on and attached as an
+# .xpi that installs permanently. Run the workflow manually with an existing tag
+# to rebuild and re-upload, e.g. after adding the secrets.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build, e.g. v1.3.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+      AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check tag matches manifest version
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          if [ "v$version" != "$TAG" ]; then
+            echo "Tag $TAG does not match manifest version $version"
+            exit 1
+          fi
+
+      - name: Build
+        run: node build.mjs
+
+      - name: Lint Firefox build
+        run: npx --yes web-ext@8 lint --source-dir dist/firefox
+
+      - name: Sign Firefox build (unlisted)
+        if: env.AMO_JWT_ISSUER != '' && env.AMO_JWT_SECRET != ''
+        run: |
+          npx --yes web-ext@8 sign --channel unlisted \
+            --source-dir dist/firefox --artifacts-dir dist/signed \
+            --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
+          mv dist/signed/*.xpi dist/deepseek-price-clock-firefox.xpi
+
+      - name: Create or update release
+        run: |
+          files=(dist/deepseek-price-clock-chrome.zip dist/deepseek-price-clock-firefox.zip)
+          if [ -f dist/deepseek-price-clock-firefox.xpi ]; then
+            files+=(dist/deepseek-price-clock-firefox.xpi)
+          fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "${files[@]}" --clobber
+          else
+            gh release create "$TAG" "${files[@]}" --title "$TAG" --generate-notes
+          fi
