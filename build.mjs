@@ -33,6 +33,17 @@ for (const browser of targets) {
   // No version in the file name, so releases/latest/download/<file> links stay stable.
   const zip = `${NAME}-${browser}.zip`;
   rmSync(`dist/${zip}`, { force: true });
-  execFileSync("zip", ["-qrX", `../${zip}`, ".", "-x", ".DS_Store", "*/.DS_Store"], { cwd: out });
+  if (browser === "chrome") {
+    // Chrome users unzip and load the folder, so wrap the files in one
+    // named folder. Firefox must stay flat: AMO signs a zip with
+    // manifest.json at its root.
+    const stage = "dist/.stage";
+    rmSync(stage, { recursive: true, force: true });
+    cpSync(out, `${stage}/${NAME}`, { recursive: true });
+    execFileSync("zip", ["-qrX", `../${zip}`, NAME, "-x", "*.DS_Store"], { cwd: stage });
+    rmSync(stage, { recursive: true, force: true });
+  } else {
+    execFileSync("zip", ["-qrX", `../${zip}`, ".", "-x", ".DS_Store", "*/.DS_Store"], { cwd: out });
+  }
   console.log(`built dist/${zip} (v${base.version})`);
 }

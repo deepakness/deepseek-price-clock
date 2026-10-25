@@ -22,13 +22,15 @@ Chrome and Firefox extension (Manifest V3) that shows DeepSeek API pricing at a 
 
 ## Install in Chrome
 
-1. [Download this repo as a ZIP](https://github.com/deepakness/deepseek-price-clock/archive/refs/heads/main.zip) and unzip it, or `git clone https://github.com/deepakness/deepseek-price-clock.git`.
-2. Open `chrome://extensions` in Chrome.
-3. Turn on **Developer mode** (toggle in the top-right corner).
-4. Click **Load unpacked** and select the unzipped folder (`deepseek-price-clock-main` if you used the ZIP).
+1. Download [`deepseek-price-clock-chrome.zip`](https://github.com/deepakness/deepseek-price-clock/releases/latest/download/deepseek-price-clock-chrome.zip) from the latest release and unzip it. You get a folder named `deepseek-price-clock`.
+2. Move that folder somewhere it can stay, such as `Documents`. Chrome loads the extension from it, so moving or deleting it breaks the extension.
+3. Open `chrome://extensions` in Chrome and turn on **Developer mode** (toggle in the top-right corner).
+4. Click **Load unpacked** and select the `deepseek-price-clock` folder.
 5. Click the puzzle-piece icon in the toolbar and pin **DeepSeek Price Clock** so the icon stays visible.
 
-To update later, re-download the ZIP (or `git pull`) and click the reload icon on the extension card in `chrome://extensions`.
+To update, download the newer zip from [Releases](https://github.com/deepakness/deepseek-price-clock/releases), replace the old `deepseek-price-clock` folder with the new one in the same place, and click the reload icon on the extension card in `chrome://extensions`. Keeping the same location keeps your settings, because Chrome identifies an unpacked extension by its folder path.
+
+To run the latest unreleased code instead, `git clone https://github.com/deepakness/deepseek-price-clock.git`, load the cloned folder the same way, and `git pull` to update.
 
 ## Install in Firefox
 

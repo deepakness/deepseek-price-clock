@@ -10,7 +10,7 @@ DeepSeek Price Clock is a Manifest V3 extension for Chrome and Firefox with no r
 - `popup.html`, `popup.css`, `popup.js`: popup UI.
 - `icons/`: `off*` (green) and `peak*` (red) toolbar icons.
 - `platforms/firefox.json`: top-level manifest keys merged over `manifest.json` for Firefox (background scripts, add-on ID, data collection declaration).
-- `build.mjs`: writes `dist/chrome/`, `dist/firefox/`, and a zip of each. Update `RUNTIME_FILES` when adding a runtime file.
+- `build.mjs`: writes `dist/chrome/`, `dist/firefox/`, and a zip of each. The Chrome zip wraps the files in a `deepseek-price-clock/` folder for users to load unpacked; the Firefox zip must stay flat (`manifest.json` at its root) for Mozilla signing. Update `RUNTIME_FILES` when adding a runtime file.
 - `sign-firefox.sh`: signs the Firefox build with Mozilla and attaches the `.xpi` to the GitHub release.
 - `.github/workflows/release.yml`: builds both zips and creates the release when a version tag is pushed.
 
