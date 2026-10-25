@@ -45,14 +45,14 @@ If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it
 - `price.js` holds the peak/off-peak logic (UTC windows, Beijing weekends, CN holidays). It is ported from [deepakness.com/deepseek](https://deepakness.com/deepseek/) — keep the two in sync.
 - `background.js` recomputes the window on an alarm tick, swaps the toolbar icon, and sends the flip notification when alerts are on.
 - `popup.html` / `popup.css` / `popup.js` render the countdown, timeline, schedule, and rates.
-- The repo root loads as-is in Chrome. `node build.mjs` writes `dist/chrome/` and `dist/firefox/` plus a zip for each; `platforms/firefox.json` holds the Firefox-only manifest keys (background scripts instead of a service worker, and the add-on ID `deepseek-price-clock@deepakness.com`, which must never change).
+- The repo root loads as-is in Chrome. `node build.mjs` writes `dist/chrome/` and `dist/firefox/` plus a zip for each; `platforms/firefox.json` holds the Firefox-only manifest keys (background scripts instead of a service worker, and the add-on ID `deepseek-clock@deepakness.com`, which must never change).
 
 `CN_HOLIDAYS` in `price.js` needs the next year's Chinese public holidays once the State Council announces them (usually November).
 
 ## Release
 
 1. Bump `version` in `manifest.json`, commit, and push.
-2. Tag and push: `git tag v1.3.0 && git push origin v1.3.0` (the tag must match the version).
+2. Tag and push: `git tag v1.3.1 && git push origin v1.3.1` (the tag must match the version).
 3. The [Release workflow](.github/workflows/release.yml) builds both browsers and attaches `deepseek-price-clock-chrome.zip` and `deepseek-price-clock-firefox.zip` to a new GitHub release.
 4. Run `./sign-firefox.sh` locally. It has Mozilla sign the Firefox build as an unlisted add-on and attaches `deepseek-price-clock-firefox.xpi` to the same release. It reads [AMO API keys](https://addons.mozilla.org/developers/addon/api/key/) from the macOS Keychain; the top of the script shows how to store them. Mozilla signs each version only once.
 
