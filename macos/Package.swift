@@ -7,7 +7,11 @@ let package = Package(
   products: [.executable(name: "DeepSeekPriceClock", targets: ["DeepSeekPriceClock"])],
   targets: [
     .target(name: "PriceClockCore"),
-    .executableTarget(name: "DeepSeekPriceClock", dependencies: ["PriceClockCore"]),
+    .executableTarget(
+      name: "DeepSeekPriceClock",
+      dependencies: ["PriceClockCore"],
+      resources: [.process("Resources")]
+    ),
     .testTarget(
       name: "PriceClockCoreTests",
       dependencies: ["PriceClockCore"],
