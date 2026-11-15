@@ -177,3 +177,36 @@ struct RatesFixture: Decodable {
   #expect(
     LabelFormat.dayTime(date(1_794_700_800_000), offsetMinutes: 480, locale: utc) == "Sun 08:00")
 }
+
+@Test func announcementPolicyMirrorsBackgroundJs() {
+  let now = date(1_794_736_500_000)
+  let start = now.addingTimeInterval(-60)
+  // First run only records the phase.
+  #expect(
+    !AnnouncementPolicy.shouldAnnounce(
+      previous: nil, current: .peak, windowStart: start, now: now, alertsEnabled: true,
+      authorized: true))
+  // A fresh flip with alerts on and permission granted announces.
+  #expect(
+    AnnouncementPolicy.shouldAnnounce(
+      previous: .off, current: .peak, windowStart: start, now: now, alertsEnabled: true,
+      authorized: true))
+  // Alerts off, permission missing, or a stale flip (older than 300 s) do not.
+  #expect(
+    !AnnouncementPolicy.shouldAnnounce(
+      previous: .off, current: .peak, windowStart: start, now: now, alertsEnabled: false,
+      authorized: true))
+  #expect(
+    !AnnouncementPolicy.shouldAnnounce(
+      previous: .off, current: .peak, windowStart: start, now: now, alertsEnabled: true,
+      authorized: false))
+  #expect(
+    !AnnouncementPolicy.shouldAnnounce(
+      previous: .off, current: .peak, windowStart: now.addingTimeInterval(-400), now: now,
+      alertsEnabled: true, authorized: true))
+  // Same phase never announces.
+  #expect(
+    !AnnouncementPolicy.shouldAnnounce(
+      previous: .peak, current: .peak, windowStart: start, now: now, alertsEnabled: true,
+      authorized: true))
+}

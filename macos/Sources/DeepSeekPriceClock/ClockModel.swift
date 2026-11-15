@@ -21,8 +21,10 @@ final class ClockModel {
     self.now = start
     self.window = PriceClock.currentWindow(at: start)
     self.windowStart = PriceClock.currentWindowStart(at: start)
+    Notifier.shared.refreshAuthorization()
     observeWake()
     scheduleTicker()
+    Settings.lastPhase = window.phase
   }
 
   var phase: Phase { window.phase }
@@ -78,6 +80,25 @@ final class ClockModel {
     now = Settings.currentInstant
     window = PriceClock.currentWindow(at: now)
     windowStart = PriceClock.currentWindowStart(at: now)
+    announceIfFlipped()
+  }
+
+  /// Records the phase and, when the flip is fresh, posts one banner.
+  private func announceIfFlipped() {
+    let previous = Settings.lastPhase
+    guard previous != window.phase else { return }
+    Settings.lastPhase = window.phase
+    guard
+      AnnouncementPolicy.shouldAnnounce(
+        previous: previous,
+        current: window.phase,
+        windowStart: windowStart,
+        now: now,
+        alertsEnabled: Settings.alerts,
+        authorized: Notifier.shared.isAuthorized
+      )
+    else { return }
+    Notifier.shared.postFlip(phase: window.phase, endLabel: endLabel(window.end))
   }
 
   /// 1 s while the panel is open (the countdown needs it), 20 s otherwise, so a

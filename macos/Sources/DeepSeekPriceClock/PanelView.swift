@@ -79,7 +79,24 @@ struct PanelView: View {
     .toggleStyle(.switch)
     .controlSize(.small)
     .onChange(of: alerts) { _, enabled in
-      Settings.alerts = enabled
+      guard enabled else {
+        Settings.alerts = false
+        alertHint = "Desktop alert at each peak / off-peak switch"
+        return
+      }
+      guard Notifier.shared.available else {
+        alerts = false
+        alertHint = "Notifications need the built .app, not a raw build"
+        return
+      }
+      Task {
+        let granted = await Notifier.shared.requestAuthorization()
+        Settings.alerts = granted
+        if !granted {
+          alerts = false
+          alertHint = "Notification permission was declined"
+        }
+      }
     }
   }
 
