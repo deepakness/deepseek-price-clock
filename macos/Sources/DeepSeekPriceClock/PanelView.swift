@@ -9,6 +9,7 @@ struct PanelView: View {
   @State private var zone: ZoneMode = Settings.zone
   @State private var alerts: Bool = Settings.alerts
   @State private var alertHint = "Desktop alert at each peak / off-peak switch"
+  @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
   init(model: ClockModel) {
     self.model = model
@@ -135,7 +136,28 @@ struct PanelView: View {
           .font(.system(size: 9))
           .foregroundStyle(PanelStyle.link)
       }
+      HStack(spacing: 8) {
+        Toggle("Launch at login", isOn: $launchAtLogin)
+          .toggleStyle(.checkbox)
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.textMuted)
+          .onChange(of: launchAtLogin) { _, enabled in
+            LaunchAtLogin.set(enabled)
+          }
+        Spacer(minLength: 4)
+        Text(version)
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.textSoft)
+        Button("Quit") { NSApp.terminate(nil) }
+          .buttonStyle(.plain)
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.link)
+      }
     }
+  }
+
+  private var version: String {
+    "v" + (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev")
   }
 
   private func legendSwatch(_ color: Color, _ label: String) -> some View {
