@@ -33,9 +33,12 @@ does not affect the extension build: no root runtime file moves, and `RUNTIME_FI
   `popup.html` change; `git diff` on the fixtures must be empty when nothing changed.
   The rate table is extracted from `popup.html`, so that file stays the single source of
   truth for prices.
-- `macos/build.sh` assembles and signs `build/DeepSeek Price Clock.app` (identity:
-  `DS_SIGN_IDENTITY`, else `DeepSeek Price Clock Dev`, else an `Apple Development:`
-  identity). `swift test` runs in `macos/`.
+- `macos/build.sh` assembles `build/DeepSeek Price Clock.app` and ad-hoc signs it, so no
+  certificate or team identity is attached to a build. `DS_SIGN_IDENTITY=<name>` signs
+  with a stable identity instead, which is what keeps notification permission and the
+  login item across rebuilds. The app ships unsigned for Gatekeeper, so the README
+  documents the quarantine flag (`xattr -dr com.apple.quarantine …`). `swift test` runs
+  in `macos/`.
 - Yearly holiday maintenance now touches `price.js` and then the fixtures; the Swift
   constants are checked against them, so a forgotten update fails `swift test`.
 - Notifications: `UNUserNotificationCenter` may refuse a locally signed app outright on

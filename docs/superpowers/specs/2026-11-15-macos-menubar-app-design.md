@@ -57,7 +57,9 @@ These would mean the work failed even if the app runs:
 - Code signing uses a **self-signed "Code Signing" certificate** created once in Keychain
   Access (Certificate Assistant), so the app's identity is stable across rebuilds and
   Notification Center keeps its authorization. Stable bundle identifier
-  `com.deepakness.deepseek-price-clock`.
+  `com.deepakness.deepseek-price-clock`. *Superseded during implementation:* the shipped
+  build ad-hoc signs by default so no identity is attached to a build, and accepts
+  `DS_SIGN_IDENTITY` for a stable identity; see `macos/README.md`.
 - China has no DST, which is why `price.js` does its Beijing arithmetic as a fixed +8
   shift on UTC. The Swift port keeps that exact approach so test vectors stay comparable
   and Beijing weekends/holidays are unambiguous. `Calendar`/`TimeZone` is used only for

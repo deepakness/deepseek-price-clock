@@ -46,8 +46,10 @@ If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it
 
 There is a native menu-bar version of the same clock: green whale for off-peak, red for
 peak, click for the countdown, timeline, price windows and rates. Build it with
-`cd macos && ./build.sh`, then see [`macos/README.md`](macos/README.md) for signing,
-installing, tests and the notification caveat. It shares the price logic: the Swift port
+`cd macos && ./build.sh`, then see [`macos/README.md`](macos/README.md) for installing,
+tests and the notification caveat. It is ad-hoc signed, not notarized: copying it to
+another Mac means clearing the quarantine flag first
+(`xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"`). It shares the price logic: the Swift port
 is checked against `price.js` by generated fixtures.
 
 ## How it works

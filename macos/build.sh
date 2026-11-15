@@ -1,38 +1,18 @@
 #!/bin/bash
-# Builds "DeepSeek Price Clock.app" and signs it with the local self-signed
-# identity. Usage: ./build.sh
+# Builds "DeepSeek Price Clock.app" and ad-hoc signs it. Usage: ./build.sh
+# Set DS_SIGN_IDENTITY=<name> to sign with a stable identity instead.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 APP="build/DeepSeek Price Clock.app"
 ICONS="../icons"
 
-# Prefer a dedicated identity, fall back to the machine's Apple Development one,
-# and let DS_SIGN_IDENTITY override both. A stable identity keeps the notification
-# permission attached to the app across rebuilds.
-IDENTITY="${DS_SIGN_IDENTITY:-}"
-if [ -z "$IDENTITY" ]; then
-  IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
-    | grep -o '"DeepSeek Price Clock Dev"' | head -1 | tr -d '"' || true)
-fi
-if [ -z "$IDENTITY" ]; then
-  IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
-    | grep -o '"Apple Development: [^"]*"' | head -1 | tr -d '"' || true)
-fi
-if [ -z "$IDENTITY" ]; then
-  cat >&2 <<MSG
-No code signing identity found.
-
-Create one once, then re-run this script:
-  1. Open Keychain Access → menu Certificate Assistant → Create a Certificate…
-  2. Name: DeepSeek Price Clock Dev
-  3. Identity Type: Self Signed Root · Certificate Type: Code Signing
-  4. Create, then Done. (macOS may ask to trust it the first time you sign.)
-
-Alternatively set DS_SIGN_IDENTITY to any existing codesigning identity.
-MSG
-  exit 1
-fi
+# Ad-hoc signed by default: no certificate needed, no identity attached to the
+# build, and it runs from /Applications on the Mac that built it. Set
+# DS_SIGN_IDENTITY to any codesigning identity (for example one created in
+# Keychain Access) if you want the signature to stay stable across rebuilds,
+# which is what keeps notification permission and the login item attached.
+IDENTITY="${DS_SIGN_IDENTITY:--}"
 
 echo "Building"
 swift build -c release
@@ -61,7 +41,11 @@ sips -z 512 512 "$ICONS/off128.png" --out "$ICONSET/icon_512x512.png" >/dev/null
 sips -z 1024 1024 "$ICONS/off128.png" --out "$ICONSET/icon_512x512@2x.png" >/dev/null
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 
-echo "Signing with $IDENTITY"
+if [ "$IDENTITY" = "-" ]; then
+  echo "Signing ad-hoc (unsigned for Gatekeeper; see macos/README.md)"
+else
+  echo "Signing with $IDENTITY"
+fi
 codesign --force --sign "$IDENTITY" --identifier com.deepakness.deepseek-price-clock "$APP"
 codesign --verify --verbose=2 "$APP"
 echo "Ready: $APP"

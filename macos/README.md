@@ -8,6 +8,22 @@ price windows and the current rates.
 Same brain as the browser extension in the repo root: `price.js` is the source of truth
 and the Swift port is checked against it (see [Parity](#parity)).
 
+> [!IMPORTANT]
+> **This app is unsigned.** It is ad-hoc signed, not notarized by Apple, so Gatekeeper
+> has no idea who made it. Built on the machine that runs it, that is fine. Copied from
+> another machine, downloaded as a zip, or sent through AirDrop, macOS will refuse to
+> open it ("can't be opened because Apple cannot check it for malicious software" or
+> "is damaged and can't be opened") until you clear the quarantine flag:
+>
+> ```sh
+> xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"
+> ```
+>
+> Or: System Settings → Privacy & Security → scroll down → **Open Anyway**. Neither
+> action makes the app trusted, they just let it run once; a rebuilt app may ask again.
+> If you want the warning gone for good you need your own Developer ID certificate and
+> a notarization round trip, which this repo deliberately does not do.
+
 ## Requirements
 
 - macOS 14 or newer
@@ -23,17 +39,22 @@ cp -R "build/DeepSeek Price Clock.app" /Applications/
 open "/Applications/DeepSeek Price Clock.app"
 ```
 
-`build.sh` signs the app so its identity stays the same across rebuilds, which is what
-keeps the notification permission (and any future launch-at-login registration)
-attached to it. It looks for a code signing identity in this order:
+`build.sh` ad-hoc signs the app (`codesign -s -`): no certificate, no identity, and it
+runs fine from `/Applications` on the Mac that built it. The catch is that an ad-hoc
+signature changes on every rebuild, so macOS treats each build as a different app and the
+notification permission (and the login-item registration) resets.
 
-1. `DS_SIGN_IDENTITY` if you set it
-2. `DeepSeek Price Clock Dev` — create it once in Keychain Access: **Certificate
-   Assistant → Create a Certificate**, name it exactly that, Identity Type *Self Signed
-   Root*, Certificate Type *Code Signing*
-3. Any `Apple Development:` identity already on the machine
+If you want a stable identity instead — the app keeps its permissions across rebuilds —
+create one once in Keychain Access (**Certificate Assistant → Create a Certificate**, name
+it whatever you like, Identity Type *Self Signed Root*, Certificate Type *Code Signing*)
+and pass it to the script:
 
-If none exist the script stops and prints the recipe.
+```sh
+DS_SIGN_IDENTITY="DeepSeek Price Clock Dev" ./build.sh
+```
+
+An `Apple Development:` identity works too, if you have one. Nothing in the repo assumes
+either, and no certificate or team identifier is baked into the build.
 
 The dev loop is `swift build && ./.build/debug/DeepSeekPriceClock`. Two caveats for the
 raw binary: macOS gives it no notification permissions (see below) and no login-item
@@ -78,13 +99,20 @@ has no DST), never the machine's timezone, which is what makes the fixtures port
 The popup's "Notify me when the price flips" toggle asks macOS for permission and posts
 one banner per flip, with the same wording as the extension.
 
-On some macOS builds `UNUserNotificationCenter` refuses locally signed apps outright
-(`UNErrorDomain` code 1, "Notifications are not allowed for this application") — it was
-observed here with both an Apple Development and an ad-hoc signature, after LaunchServices
-registration, from `/Applications`. When that happens the toggle explains it instead of
-pretending, and the panel shows its own "Peak pricing just started" strip for five
-minutes after a flip, so the information still reaches you. If banners do work on your
-machine, they arrive only while the app is running (it is a menu-bar app, so it is).
+Two things can stop a banner:
+
+1. **Gatekeeper-adjacent refusal.** On some macOS builds `UNUserNotificationCenter`
+   rejects unsigned apps outright (`UNErrorDomain` code 1, "Notifications are not allowed
+   for this application"). It reproduces with ad-hoc and with developer signatures, after
+   LaunchServices registration, from `/Applications`.
+2. **The ad-hoc rebuild trap.** An ad-hoc signature changes every build, so even where
+   banners do work, a rebuild can leave you with a permission granted to a binary that no
+   longer exists. A stable identity (`DS_SIGN_IDENTITY`) avoids this one.
+
+When permission is unavailable the toggle says so instead of pretending, and the panel
+shows its own "Peak pricing just started" strip for five minutes after a flip, so the
+information still reaches you. Banners, where they work, arrive only while the app is
+running — it is a menu-bar app, so it is.
 
 ## Manual checks with a fake clock
 
