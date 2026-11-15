@@ -138,3 +138,31 @@ struct RatesFixture: Decodable {
   #expect(RateTable.amount(RateTable.models[0].rates[0], phase: .off) == "$0.15")
   #expect(RateTable.amount(RateTable.models[0].rates[0], phase: .peak) == "$0.30")
 }
+
+@Test func countdownMatchesPopupFormat() {
+  #expect(LabelFormat.countdown(secondsRemaining: 599) == "0:09:59")
+  #expect(LabelFormat.countdown(secondsRemaining: 43_201) == "12:00:01")
+  #expect(LabelFormat.countdown(secondsRemaining: -5) == "0:00:00")
+}
+
+@Test func awayAndDurationLabelsMatchPopup() {
+  #expect(LabelFormat.away(ms: 135 * 60_000) == "2h 15m")
+  #expect(LabelFormat.away(ms: 45 * 60_000) == "45m")
+  #expect(LabelFormat.away(ms: 30_000) == "0m")
+  #expect(LabelFormat.duration(ms: 90 * 60_000) == "1h 30m")
+  #expect(LabelFormat.duration(ms: 3_600_000) == "1h")
+  #expect(LabelFormat.duration(ms: 45 * 60_000) == "45m")
+}
+
+@Test func gmtOffsetUsesTypographicMinus() {
+  #expect(LabelFormat.gmtOffset(minutes: 0) == "GMT+0")
+  #expect(LabelFormat.gmtOffset(minutes: 480) == "GMT+8")
+  #expect(LabelFormat.gmtOffset(minutes: -300) == "GMT−5")
+  #expect(LabelFormat.gmtOffset(minutes: 345) == "GMT+5:45")
+}
+
+@Test func dayKeyFollowsDisplayOffset() {
+  // 1794785400000 = 2026-11-15T23:30Z: 2026-11-16 in Shanghai (offset 480), 2026-11-15 in UTC.
+  #expect(LabelFormat.dayKey(date(1_794_785_400_000), offsetMinutes: 0) == 20_261_115)
+  #expect(LabelFormat.dayKey(date(1_794_785_400_000), offsetMinutes: 480) == 20_261_116)
+}
