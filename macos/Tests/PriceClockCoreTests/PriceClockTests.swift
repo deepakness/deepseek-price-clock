@@ -210,3 +210,13 @@ struct RatesFixture: Decodable {
       previous: .peak, current: .peak, windowStart: start, now: now, alertsEnabled: true,
       authorized: true))
 }
+
+@Test func flipNoticeExpiresAfterTheGraceWindow() {
+  let shown = date(1_794_736_500_000)
+  #expect(AnnouncementPolicy.noticeVisible(shownAt: shown, now: shown.addingTimeInterval(1)))
+  #expect(
+    AnnouncementPolicy.noticeVisible(shownAt: shown, now: shown.addingTimeInterval(300)))
+  #expect(
+    !AnnouncementPolicy.noticeVisible(shownAt: shown, now: shown.addingTimeInterval(301)))
+  #expect(!AnnouncementPolicy.noticeVisible(shownAt: nil, now: shown))
+}

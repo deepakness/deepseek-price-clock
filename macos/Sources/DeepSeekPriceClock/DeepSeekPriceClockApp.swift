@@ -27,10 +27,9 @@ struct DeepSeekPriceClockApp: App {
   var body: some Scene {
     MenuBarExtra {
       PanelView(model: model)
-        .onAppear { model.setPanelVisible(true) }
-        .onDisappear { model.setPanelVisible(false) }
     } label: {
       Image(nsImage: MenuBarIcon.image(for: model.phase))
+        .help(model.title)
     }
     .menuBarExtraStyle(.window)
   }

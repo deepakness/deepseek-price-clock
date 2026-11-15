@@ -42,6 +42,13 @@ struct PanelView: View {
       Settings.zone = next
       model.refreshNow()
     }
+    .onAppear {
+      // A permission revoked in System Settings must show as off here, not as a
+      // switch that silently does nothing.
+      alerts = Settings.alerts && Notifier.shared.isAuthorized
+      model.setPanelVisible(true)
+    }
+    .onDisappear { model.setPanelVisible(false) }
   }
 
   private var header: some View {
@@ -100,8 +107,10 @@ struct PanelView: View {
     .controlSize(.small)
     .onChange(of: alerts) { _, enabled in
       guard enabled else {
+        // Only the user turning it off resets the hint: this handler also runs
+        // when the app reverts the switch after a denial, and that explanation
+        // has to stay on screen.
         Settings.alerts = false
-        alertHint = "Desktop alert at each peak / off-peak switch"
         return
       }
       guard Notifier.shared.available else {

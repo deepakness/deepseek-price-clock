@@ -17,8 +17,15 @@ public enum AnnouncementPolicy {
     alertsEnabled: Bool,
     authorized: Bool
   ) -> Bool {
-    guard let previous, previous != current else { return false }
+    guard previous != nil, previous != current else { return false }
     guard alertsEnabled, authorized else { return false }
     return now.timeIntervalSince(windowStart) <= graceSeconds
+  }
+
+  /// The panel's own "price flipped" strip: stays up for the same grace window
+  /// and then goes away, so it never becomes permanent furniture.
+  public static func noticeVisible(shownAt: Date?, now: Date) -> Bool {
+    guard let shownAt else { return false }
+    return now.timeIntervalSince(shownAt) <= graceSeconds
   }
 }

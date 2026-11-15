@@ -26,7 +26,7 @@ enum MenuBarIcon {
   private static let mask: NSImage = {
     let empty = NSImage(size: NSSize(width: 18, height: 18))
     guard
-      let url = Bundle.module.url(forResource: "peak32", withExtension: "png"),
+      let url = glyphURL,
       let data = try? Data(contentsOf: url),
       let source = NSBitmapImageRep(data: data)?.cgImage
     else { return empty }
@@ -78,6 +78,22 @@ enum MenuBarIcon {
     image.isTemplate = true
     return image
   }()
+
+  /// The whale art, found without Bundle.module: that accessor traps when the
+  /// SwiftPM resource bundle is missing, and the assembled app must not depend on
+  /// a build directory that can be cleaned away. Checked in order: the app's
+  /// Resources, the resource bundle beside the executable (sealed inside
+  /// Contents/MacOS, or sitting next to the binary in the dev loop).
+  private static var glyphURL: URL? {
+    let besideExecutable = Bundle.main.bundleURL
+      .appendingPathComponent("DeepSeekPriceClock_DeepSeekPriceClock.bundle")
+      .appendingPathComponent("Contents/Resources/peak32.png")
+    let candidates: [URL] = [
+      Bundle.main.url(forResource: "peak32", withExtension: "png"),
+      besideExecutable,
+    ].compactMap { $0 }
+    return candidates.first { FileManager.default.fileExists(atPath: $0.path) }
+  }
 
   private static func tinted(mask: NSImage, color: Color) -> NSImage {
     let size = NSSize(width: 18, height: 18)

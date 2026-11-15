@@ -42,7 +42,9 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/DeepSeekPriceClock "$APP/Contents/MacOS/DeepSeekPriceClock"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-cp "$ICONS"/off*.png "$ICONS"/peak*.png "$APP/Contents/Resources/"
+cp "$ICONS/peak32.png" "$APP/Contents/Resources/peak32.png"
+# The glyph ships as a plain resource so the app needs no build directory at
+# runtime (the dev loop still reads it out of SwiftPM's resource bundle).
 
 # AppIcon.icns from the 128 px art (iconutil needs the full ladder).
 ICONSET="build/AppIcon.iconset"

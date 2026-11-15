@@ -34,7 +34,9 @@ final class ClockModel {
   var phase: Phase { window.phase }
 
   var displayOffset: Int {
-    Settings.zone == .utc ? 0 : TimeZone.current.secondsFromGMT(for: now) / 60
+    // autoupdatingCurrent, not .current: the latter is a snapshot taken at launch
+    // and would keep showing the old zone after a travel or region change.
+    Settings.zone == .utc ? 0 : TimeZone.autoupdatingCurrent.secondsFromGMT(for: now) / 60
   }
 
   /// True when the current window ends on a different display day.
@@ -45,7 +47,7 @@ final class ClockModel {
 
   var timezoneCaption: String {
     if Settings.zone == .utc { return "UTC · GMT+0" }
-    return "\(TimeZone.current.identifier) · \(LabelFormat.gmtOffset(minutes: displayOffset))"
+    return "\(TimeZone.autoupdatingCurrent.identifier) · \(LabelFormat.gmtOffset(minutes: displayOffset))"
   }
 
   /// "06:00" / "2:00 PM" in the panel's timezone (UTC when the toggle says so).
@@ -67,7 +69,7 @@ final class ClockModel {
       : "DeepSeek: off-peak (half price) until \(time)"
   }
 
-  func endLabel(_ date: Date, timeZone: TimeZone = .current) -> String {
+  func endLabel(_ date: Date, timeZone: TimeZone = .autoupdatingCurrent) -> String {
     var style = Date.FormatStyle(locale: .current).weekday(.abbreviated).hour().minute()
     style.timeZone = timeZone
     return date.formatted(style)
@@ -90,15 +92,21 @@ final class ClockModel {
   /// Records the phase and, when the flip is fresh, posts one banner and keeps
   /// a short notice for the panel.
   private func announceIfFlipped() {
+    // Expire the panel strip first: it has to disappear even when no flip is
+    // happening, which is every tick after the first one.
+    if !AnnouncementPolicy.noticeVisible(shownAt: recentFlipAt, now: now) {
+      recentFlip = nil
+      recentFlipAt = nil
+    }
+
     let previous = Settings.lastPhase
     guard previous != window.phase else { return }
     Settings.lastPhase = window.phase
-    if previous != nil, now.timeIntervalSince(windowStart) <= AnnouncementPolicy.graceSeconds {
+    if previous != nil, Settings.alerts,
+      now.timeIntervalSince(windowStart) <= AnnouncementPolicy.graceSeconds
+    {
       recentFlip = window.phase
       recentFlipAt = now
-    }
-    if let recentFlipAt, now.timeIntervalSince(recentFlipAt) > AnnouncementPolicy.graceSeconds {
-      recentFlip = nil
     }
     guard
       AnnouncementPolicy.shouldAnnounce(
