@@ -13,6 +13,10 @@ final class ClockModel {
   private(set) var now: Date
   private(set) var window: CurrentWindow
   private(set) var windowStart: Date
+  /// Set when a flip was just noticed, so the panel can say so even when the
+  /// system refuses our banners.
+  private(set) var recentFlip: Phase?
+  private var recentFlipAt: Date?
   private var ticker: Task<Void, Never>?
   private var panelVisible = false
 
@@ -83,11 +87,19 @@ final class ClockModel {
     announceIfFlipped()
   }
 
-  /// Records the phase and, when the flip is fresh, posts one banner.
+  /// Records the phase and, when the flip is fresh, posts one banner and keeps
+  /// a short notice for the panel.
   private func announceIfFlipped() {
     let previous = Settings.lastPhase
     guard previous != window.phase else { return }
     Settings.lastPhase = window.phase
+    if previous != nil, now.timeIntervalSince(windowStart) <= AnnouncementPolicy.graceSeconds {
+      recentFlip = window.phase
+      recentFlipAt = now
+    }
+    if let recentFlipAt, now.timeIntervalSince(recentFlipAt) > AnnouncementPolicy.graceSeconds {
+      recentFlip = nil
+    }
     guard
       AnnouncementPolicy.shouldAnnounce(
         previous: previous,

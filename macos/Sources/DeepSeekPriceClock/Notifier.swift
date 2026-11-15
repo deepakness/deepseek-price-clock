@@ -25,12 +25,32 @@ final class Notifier {
     }
   }
 
+  /// Writes a line to /tmp/deepseek-notify.log so a probe run can be read back
+  /// without attaching to the process.
+  func probeLog(_ line: String) {
+    let path = "/tmp/deepseek-notify.log"
+    let entry = "\(Date()) \(line)\n"
+    if let handle = FileHandle(forWritingAtPath: path) {
+      handle.seekToEndOfFile()
+      handle.write(Data(entry.utf8))
+      handle.closeFile()
+    } else {
+      try? entry.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+  }
+
   func requestAuthorization() async -> Bool {
     guard available else { return false }
-    let granted = (try? await UNUserNotificationCenter.current().requestAuthorization(
-      options: [.alert, .sound])) ?? false
-    isAuthorized = granted
-    return granted
+    do {
+      let granted = try await UNUserNotificationCenter.current().requestAuthorization(
+        options: [.alert, .sound])
+      probeLog("requestAuthorization returned \(granted)")
+      isAuthorized = granted
+      return granted
+    } catch {
+      probeLog("requestAuthorization threw \(error)")
+      return false
+    }
   }
 
   /// Same titles and messages as background.js; `endLabel` is already the

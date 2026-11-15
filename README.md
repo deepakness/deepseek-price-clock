@@ -42,6 +42,14 @@ The `.xpi` is signed by Mozilla for self-distribution, so it stays installed acr
 
 If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it, open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and pick `manifest.json`. Firefox removes temporary add-ons when it restarts.
 
+## macOS menu-bar app
+
+There is a native menu-bar version of the same clock: green whale for off-peak, red for
+peak, click for the countdown, timeline, price windows and rates. Build it with
+`cd macos && ./build.sh`, then see [`macos/README.md`](macos/README.md) for signing,
+installing, tests and the notification caveat. It shares the price logic: the Swift port
+is checked against `price.js` by generated fixtures.
+
 ## How it works
 
 - `price.js` holds the peak/off-peak logic (UTC windows, Beijing weekends, CN holidays). It is ported from [deepakness.com/deepseek](https://deepakness.com/deepseek/) — keep the two in sync.

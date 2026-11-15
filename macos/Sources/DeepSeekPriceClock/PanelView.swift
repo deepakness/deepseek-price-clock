@@ -17,6 +17,9 @@ struct PanelView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       header
+      if let flip = model.recentFlip {
+        flipNotice(flip)
+      }
       VStack(alignment: .leading, spacing: 10) {
         HeroCard(model: model)
         TimelineStrip(model: model)
@@ -63,6 +66,22 @@ struct PanelView: View {
       .controlSize(.small)
       .frame(width: 110)
     }
+  }
+
+  /// Shown when a flip was just noticed: the panel's own fallback for systems
+  /// that will not let a locally signed app post banners.
+  private func flipNotice(_ phase: Phase) -> some View {
+    HStack(spacing: 6) {
+      Image(systemName: phase == .peak ? "arrow.up.right" : "arrow.down.right")
+        .font(.system(size: 10, weight: .semibold))
+      Text(phase == .peak ? "Peak pricing just started" : "Off-peak just started")
+        .font(.system(size: 10, weight: .medium))
+      Spacer(minLength: 0)
+    }
+    .foregroundStyle(PanelStyle.tint(phase))
+    .padding(.horizontal, 8)
+    .padding(.vertical, 5)
+    .background(PanelStyle.background(phase), in: RoundedRectangle(cornerRadius: 6))
   }
 
   private var alertsRow: some View {

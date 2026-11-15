@@ -14,9 +14,13 @@ struct DeepSeekPriceClockApp: App {
 
   init() {
     MainActor.assumeIsolated {
-      guard Snapshot.requested else { return }
-      Snapshot.run(model: ClockModel())
-      exit(0)
+      if Snapshot.requested {
+        Snapshot.run(model: ClockModel())
+        exit(0)
+      }
+      if CommandLine.arguments.contains("--notify-test") {
+        Snapshot.notificationProbe()
+      }
     }
   }
 
@@ -35,6 +39,25 @@ struct DeepSeekPriceClockApp: App {
 @MainActor
 enum Snapshot {
   static var requested: Bool { CommandLine.arguments.contains("--snapshot") }
+
+  /// `--notify-test`: ask for permission, post one real flip banner, exit. Used
+  /// to verify delivery in the signed bundle.
+  static func notificationProbe() {
+    Task { @MainActor in
+      // Let the app finish launching: the notification centre wants a running
+      // app bundle, not one still inside App.init.
+      try? await Task.sleep(for: .seconds(2))
+      Notifier.shared.probeLog("requesting authorization")
+      let granted = await Notifier.shared.requestAuthorization()
+      Notifier.shared.probeLog("authorized: \(granted)")
+      guard granted else { exit(1) }
+      try? await Task.sleep(for: .seconds(3))
+      Notifier.shared.postFlip(phase: .off, endLabel: "Sun 9:00 AM")
+      Notifier.shared.probeLog("posted")
+      try? await Task.sleep(for: .seconds(2))
+      exit(0)
+    }
+  }
 
   static func run(model: ClockModel) {
     let arguments = CommandLine.arguments
