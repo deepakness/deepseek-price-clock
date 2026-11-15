@@ -38,6 +38,26 @@ public enum LabelFormat {
     return "GMT" + sign + String(hours) + (rest == 0 ? "" : ":\(pad(rest))")
   }
 
+  /// "06:00" / "2:00 PM" in the display timezone, like the popup's `timeFmt`.
+  public static func time(_ date: Date, offsetMinutes: Int, locale: Locale = .current) -> String {
+    var style = Date.FormatStyle(locale: locale).hour().minute()
+    style.timeZone = zone(offsetMinutes)
+    return date.formatted(style)
+  }
+
+  /// "Mon 06:00" in the display timezone, like the popup's `dayFmt`.
+  public static func dayTime(
+    _ date: Date, offsetMinutes: Int, locale: Locale = .current
+  ) -> String {
+    var style = Date.FormatStyle(locale: locale).weekday(.abbreviated).hour().minute()
+    style.timeZone = zone(offsetMinutes)
+    return date.formatted(style)
+  }
+
+  static func zone(_ offsetMinutes: Int) -> TimeZone {
+    TimeZone(secondsFromGMT: offsetMinutes * 60) ?? .gmt
+  }
+
   /// `yyyyMMdd` in the display timezone, matching `displayDayKey`.
   public static func dayKey(_ date: Date, offsetMinutes: Int) -> Int {
     let shifted = Date(timeIntervalSince1970: date.timeIntervalSince1970 + Double(offsetMinutes) * 60)

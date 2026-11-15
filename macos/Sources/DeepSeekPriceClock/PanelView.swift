@@ -1,0 +1,111 @@
+/* The popup, redrawn. Same order as popup.html: header, card (hero, timeline,
+   windows), rates, alerts, footer. */
+
+import PriceClockCore
+import SwiftUI
+
+struct PanelView: View {
+  let model: ClockModel
+  @State private var zone: ZoneMode = Settings.zone
+  @State private var alerts: Bool = Settings.alerts
+  @State private var alertHint = "Desktop alert at each peak / off-peak switch"
+
+  init(model: ClockModel) {
+    self.model = model
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      header
+      VStack(alignment: .leading, spacing: 10) {
+        HeroCard(model: model)
+        TimelineStrip(model: model)
+        WindowsTable(model: model)
+      }
+      .padding(10)
+      .background(PanelStyle.surface, in: RoundedRectangle(cornerRadius: 12))
+      .overlay(
+        RoundedRectangle(cornerRadius: 12).strokeBorder(PanelStyle.border.opacity(0.7), lineWidth: 1))
+
+      RatesBlock(model: model)
+      alertsRow
+      footer
+    }
+    .padding(12)
+    .frame(width: 380)
+    .background(PanelStyle.surface)
+    .onChange(of: zone) { _, next in
+      Settings.zone = next
+      model.refreshNow()
+    }
+  }
+
+  private var header: some View {
+    HStack(spacing: 8) {
+      Image(nsImage: MenuBarIcon.image(for: model.phase))
+        .resizable()
+        .frame(width: 22, height: 22)
+      VStack(alignment: .leading, spacing: 1) {
+        Text("DeepSeek Price Clock")
+          .font(.system(size: 13, weight: .semibold))
+          .foregroundStyle(PanelStyle.text)
+        Text(model.timezoneCaption)
+          .font(.system(size: 10))
+          .foregroundStyle(PanelStyle.textSoft)
+      }
+      Spacer(minLength: 4)
+      Picker("Timezone", selection: $zone) {
+        Text("Local").tag(ZoneMode.local)
+        Text("UTC").tag(ZoneMode.utc)
+      }
+      .pickerStyle(.segmented)
+      .labelsHidden()
+      .controlSize(.small)
+      .frame(width: 110)
+    }
+  }
+
+  private var alertsRow: some View {
+    Toggle(isOn: $alerts) {
+      VStack(alignment: .leading, spacing: 1) {
+        Text("Notify me when the price flips")
+          .font(.system(size: 11, weight: .medium))
+          .foregroundStyle(PanelStyle.text)
+        Text(alertHint)
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.textSoft)
+      }
+    }
+    .toggleStyle(.switch)
+    .controlSize(.small)
+    .onChange(of: alerts) { _, enabled in
+      Settings.alerts = enabled
+    }
+  }
+
+  private var footer: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack(spacing: 5) {
+        legendSwatch(PanelStyle.offSolid, "Green icon = off-peak")
+        Text("·").font(.system(size: 9)).foregroundStyle(PanelStyle.textSoft)
+        legendSwatch(PanelStyle.peakSolid, "Red icon = peak")
+      }
+      HStack(spacing: 6) {
+        Text("Weekends & CN holidays off-peak")
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.textSoft)
+        Spacer(minLength: 4)
+        Link("Full price clock ↗", destination: URL(string: "https://deepakness.com/deepseek/")!)
+          .font(.system(size: 9))
+          .foregroundStyle(PanelStyle.link)
+      }
+    }
+  }
+
+  private func legendSwatch(_ color: Color, _ label: String) -> some View {
+    HStack(spacing: 3) {
+      RoundedRectangle(cornerRadius: 1.5).fill(color).frame(width: 8, height: 8)
+      Text(label).font(.system(size: 9)).foregroundStyle(PanelStyle.textSoft)
+    }
+  }
+}

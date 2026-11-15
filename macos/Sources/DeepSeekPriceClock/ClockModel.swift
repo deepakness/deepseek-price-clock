@@ -17,7 +17,7 @@ final class ClockModel {
   private var panelVisible = false
 
   init(now: Date? = nil) {
-    let start = now ?? Settings.fakeNow ?? Date()
+    let start = now ?? Settings.currentInstant
     self.now = start
     self.window = PriceClock.currentWindow(at: start)
     self.windowStart = PriceClock.currentWindowStart(at: start)
@@ -42,7 +42,18 @@ final class ClockModel {
     return "\(TimeZone.current.identifier) · \(LabelFormat.gmtOffset(minutes: displayOffset))"
   }
 
-  /// The toolbar-title sentence, mirroring background.js.
+  /// "06:00" / "2:00 PM" in the panel's timezone (UTC when the toggle says so).
+  func timeLabel(_ date: Date) -> String {
+    LabelFormat.time(date, offsetMinutes: displayOffset)
+  }
+
+  /// "Mon 06:00" in the panel's timezone.
+  func dayTimeLabel(_ date: Date) -> String {
+    LabelFormat.dayTime(date, offsetMinutes: displayOffset)
+  }
+
+  /// The toolbar-title sentence, mirroring background.js, which always speaks in
+  /// system-local time.
   var title: String {
     let time = endLabel(window.end)
     return phase == .peak
@@ -50,9 +61,10 @@ final class ClockModel {
       : "DeepSeek: off-peak (half price) until \(time)"
   }
 
-  func endLabel(_ date: Date) -> String {
-    date.formatted(
-      Date.FormatStyle(locale: .current).weekday(.abbreviated).hour().minute())
+  func endLabel(_ date: Date, timeZone: TimeZone = .current) -> String {
+    var style = Date.FormatStyle(locale: .current).weekday(.abbreviated).hour().minute()
+    style.timeZone = timeZone
+    return date.formatted(style)
   }
 
   func setPanelVisible(_ visible: Bool) {
@@ -63,7 +75,7 @@ final class ClockModel {
   }
 
   func refreshNow() {
-    now = Settings.fakeNow ?? Date()
+    now = Settings.currentInstant
     window = PriceClock.currentWindow(at: now)
     windowStart = PriceClock.currentWindowStart(at: now)
   }

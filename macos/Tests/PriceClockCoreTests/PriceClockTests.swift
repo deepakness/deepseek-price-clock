@@ -166,3 +166,14 @@ struct RatesFixture: Decodable {
   #expect(LabelFormat.dayKey(date(1_794_785_400_000), offsetMinutes: 0) == 20_261_115)
   #expect(LabelFormat.dayKey(date(1_794_785_400_000), offsetMinutes: 480) == 20_261_116)
 }
+
+@Test func timeLabelsFollowTheDisplayOffset() {
+  let instant = date(1_794_808_800_000)  // 2026-11-16T06:00:00Z
+  let utc = Locale(identifier: "en_GB")
+  #expect(LabelFormat.time(instant, offsetMinutes: 0, locale: utc) == "06:00")
+  #expect(LabelFormat.time(instant, offsetMinutes: 480, locale: utc) == "14:00")
+  #expect(
+    LabelFormat.dayTime(date(1_794_700_800_000), offsetMinutes: 0, locale: utc) == "Sun 00:00")
+  #expect(
+    LabelFormat.dayTime(date(1_794_700_800_000), offsetMinutes: 480, locale: utc) == "Sun 08:00")
+}
