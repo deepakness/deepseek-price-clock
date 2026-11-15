@@ -8,7 +8,6 @@ struct PanelView: View {
   let model: ClockModel
   @State private var zone: ZoneMode = Settings.zone
   @State private var alerts: Bool = Settings.alerts
-  @State private var alertHint = "Desktop alert at each peak / off-peak switch"
   @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
   init(model: ClockModel) {
@@ -45,6 +44,7 @@ struct PanelView: View {
     .onAppear {
       // A permission revoked in System Settings must show as off here, not as a
       // switch that silently does nothing.
+      Notifier.shared.refreshStatus()
       alerts = Settings.alerts && Notifier.shared.isAuthorized
       model.setPanelVisible(true)
     }
@@ -98,7 +98,7 @@ struct PanelView: View {
         Text("Notify me when the price flips")
           .font(.system(size: 11, weight: .medium))
           .foregroundStyle(PanelStyle.text)
-        Text(alertHint)
+        Text(NotificationHint.text(for: Notifier.shared.status, alertsOn: alerts))
           .font(.system(size: 9))
           .foregroundStyle(PanelStyle.textSoft)
       }
@@ -107,25 +107,23 @@ struct PanelView: View {
     .controlSize(.small)
     .onChange(of: alerts) { _, enabled in
       guard enabled else {
-        // Only the user turning it off resets the hint: this handler also runs
-        // when the app reverts the switch after a denial, and that explanation
-        // has to stay on screen.
         Settings.alerts = false
         return
       }
       guard Notifier.shared.available else {
         alerts = false
-        alertHint = "Notifications need the built .app, not a raw build"
         return
       }
       Task {
         let granted = await Notifier.shared.requestAuthorization()
         Settings.alerts = granted
-        if !granted {
-          alerts = false
-          alertHint = "Notification permission was declined"
-        }
+        if !granted { alerts = false }
       }
+    }
+    .onChange(of: Notifier.shared.status) { _, _ in
+      // A grant or revocation in System Settings flips the switch to match, and
+      // the hint below it follows on its own.
+      alerts = Settings.alerts && Notifier.shared.isAuthorized
     }
   }
 

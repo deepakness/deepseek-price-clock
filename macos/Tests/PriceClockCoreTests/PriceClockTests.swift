@@ -220,3 +220,17 @@ struct RatesFixture: Decodable {
     !AnnouncementPolicy.noticeVisible(shownAt: shown, now: shown.addingTimeInterval(301)))
   #expect(!AnnouncementPolicy.noticeVisible(shownAt: nil, now: shown))
 }
+
+@Test func notificationHintFollowsTheCurrentGrant() {
+  let prompt = "Desktop alert at each peak / off-peak switch"
+  // The bug: a grant after a denial must clear the denial text.
+  #expect(
+    NotificationHint.text(for: .denied, alertsOn: false)
+      == "Notification permission was declined")
+  #expect(NotificationHint.text(for: .authorized, alertsOn: true) == prompt)
+  #expect(NotificationHint.text(for: .authorized, alertsOn: false) == prompt)
+  #expect(NotificationHint.text(for: .notDetermined, alertsOn: false) == prompt)
+  #expect(
+    NotificationHint.text(for: .unavailable, alertsOn: false)
+      == "Notifications need the built .app, not a raw build")
+}

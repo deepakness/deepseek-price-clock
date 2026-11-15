@@ -25,8 +25,9 @@ final class ClockModel {
     self.now = start
     self.window = PriceClock.currentWindow(at: start)
     self.windowStart = PriceClock.currentWindowStart(at: start)
-    Notifier.shared.refreshAuthorization()
+    Notifier.shared.refreshStatus()
     observeWake()
+    observeActivation()
     scheduleTicker()
     Settings.lastPhase = window.phase
   }
@@ -132,6 +133,16 @@ final class ClockModel {
         guard !Task.isCancelled, let self else { return }
         self.refreshNow()
       }
+    }
+  }
+
+  /// Coming back from System Settings must re-read the grant, otherwise the
+  /// panel keeps claiming a permission the user just changed.
+  private func observeActivation() {
+    NotificationCenter.default.addObserver(
+      forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+    ) { _ in
+      MainActor.assumeIsolated { Notifier.shared.refreshStatus() }
     }
   }
 

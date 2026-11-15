@@ -6,22 +6,37 @@ import Foundation
 import PriceClockCore
 import UserNotifications
 
+@Observable
 @MainActor
 final class Notifier {
   static let shared = Notifier()
 
-  private(set) var isAuthorized = false
+  /// Live grant state. The panel's hint is derived from this, so text can never
+  /// outlive the permission it describes.
+  private(set) var status: NotificationStatus
+
+  var isAuthorized: Bool { status == .authorized }
+
   /// False when running the raw binary out of .build, where the notification
   /// centre has no bundle to attribute a banner to.
-  let available = Bundle.main.bundleIdentifier != nil
+  var available: Bool { status != .unavailable }
 
-  /// Reads the current grant on launch, so a flip is not announced into a void.
-  func refreshAuthorization() {
+  init() {
+    status = Bundle.main.bundleIdentifier == nil ? .unavailable : .notDetermined
+  }
+
+  /// Re-reads the grant. Called on launch, whenever the app becomes active (the
+  /// user may have flipped it in System Settings), and before the panel opens.
+  func refreshStatus() {
     guard available else { return }
     UNUserNotificationCenter.current().getNotificationSettings { settings in
-      let granted = settings.authorizationStatus == .authorized
-        || settings.authorizationStatus == .provisional
-      Task { @MainActor in self.isAuthorized = granted }
+      let next: NotificationStatus
+      switch settings.authorizationStatus {
+      case .authorized, .provisional, .ephemeral: next = .authorized
+      case .denied: next = .denied
+      default: next = .notDetermined
+      }
+      Task { @MainActor in self.status = next }
     }
   }
 
@@ -45,10 +60,13 @@ final class Notifier {
       let granted = try await UNUserNotificationCenter.current().requestAuthorization(
         options: [.alert, .sound])
       probeLog("requestAuthorization returned \(granted)")
-      isAuthorized = granted
+      status = granted ? .authorized : .denied
       return granted
     } catch {
       probeLog("requestAuthorization threw \(error)")
+      // macOS can refuse outright without showing a prompt; report that as a
+      // denial so the panel can explain itself instead of looking broken.
+      status = .denied
       return false
     }
   }

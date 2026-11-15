@@ -99,20 +99,27 @@ has no DST), never the machine's timezone, which is what makes the fixtures port
 The popup's "Notify me when the price flips" toggle asks macOS for permission and posts
 one banner per flip, with the same wording as the extension.
 
-Two things can stop a banner:
+The toggle asks macOS for permission the first time it is switched on, and the line
+underneath always states the current truth: the normal hint when permission is granted,
+"Notification permission was declined" when it is not, "Notifications need the built .app"
+in the dev loop. It is derived from the live grant, so granting permission in System
+Settings clears the old text the next time the app comes forward — the app re-reads the
+grant on launch, on becoming active, and whenever the panel opens.
 
-1. **Gatekeeper-adjacent refusal.** On some macOS builds `UNUserNotificationCenter`
-   rejects unsigned apps outright (`UNErrorDomain` code 1, "Notifications are not allowed
-   for this application"). It reproduces with ad-hoc and with developer signatures, after
-   LaunchServices registration, from `/Applications`.
-2. **The ad-hoc rebuild trap.** An ad-hoc signature changes every build, so even where
-   banners do work, a rebuild can leave you with a permission granted to a binary that no
-   longer exists. A stable identity (`DS_SIGN_IDENTITY`) avoids this one.
+Two things can still stop a banner:
 
-When permission is unavailable the toggle says so instead of pretending, and the panel
-shows its own "Peak pricing just started" strip for five minutes after a flip, so the
-information still reaches you. Banners, where they work, arrive only while the app is
-running — it is a menu-bar app, so it is.
+1. **Permission revoked or never granted.** System Settings → Notifications → DeepSeek
+   Price Clock. Focus / Do Not Disturb hides banners too.
+2. **The ad-hoc rebuild trap.** An ad-hoc signature changes every build, so macOS may
+   treat a rebuilt app as a different one and drop the grant. A stable identity
+   (`DS_SIGN_IDENTITY`) avoids this.
+
+One macOS quirk worth knowing: while an app is newly installed, `UNUserNotificationCenter`
+can answer `UNErrorDomain` code 1 — "Notifications are not allowed for this application" —
+for the first several launches, with no prompt. It resolved itself here once macOS had
+registered the app; nothing in the code needed to change. Until it does, the toggle shows
+the denial and the panel shows its own "Peak pricing just started" strip for five minutes
+after a flip.
 
 ## Manual checks with a fake clock
 
