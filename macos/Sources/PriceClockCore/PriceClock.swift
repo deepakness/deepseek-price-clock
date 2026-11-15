@@ -9,6 +9,27 @@ public enum Phase: String, Codable, Sendable {
   case off
 }
 
+public struct Switch: Sendable, Equatable {
+  public let date: Date
+  public let phase: Phase
+}
+
+/// The window you are in, plus where it ends and how far into the UTC day you
+/// are (the popup uses that for the timeline marker).
+public struct CurrentWindow: Sendable, Equatable {
+  public let phase: Phase
+  public let nextPhase: Phase
+  public let end: Date
+  public let minuteOfDay: Int
+}
+
+public struct PriceWindow: Sendable, Equatable {
+  public let start: Date
+  public let end: Date
+  public let phase: Phase
+  public let isCurrent: Bool
+}
+
 public enum PriceClock {
   /// Peak window switch instants in UTC minutes-of-day. Chinese standard time
   /// is a fixed +08:00, so Beijing arithmetic is a shift on the instant rather
@@ -74,5 +95,85 @@ public enum PriceClock {
     if offPeakAllDay(date) { return .off }
     let minute = minuteOfDay(date)
     return (minute >= 60 && minute < 240) || (minute >= 360 && minute < 600) ? .peak : .off
+  }
+
+  /// A switch minute is a real price change only outside gated
+  /// weekends/holidays.
+  public static func isSwitchInstant(_ date: Date) -> Bool {
+    let minute = minuteOfDay(date)
+    guard switchMinutes.contains(minute) else { return false }
+    return !offPeakAllDay(date)
+  }
+
+  static func utcDayStart(_ date: Date) -> Date {
+    Date(timeIntervalSince1970: (date.timeIntervalSince1970 / 86400).rounded(.down) * 86400)
+  }
+
+  /// The next `count` price changes as absolute instants. Candidates are walked
+  /// day by day from UTC midnight, so a long holiday stretch simply skips.
+  public static func nextSwitches(after date: Date, count: Int) -> [Switch] {
+    let dayStart = utcDayStart(date).timeIntervalSince1970
+    var out: [Switch] = []
+    var day = 0
+    var index = 0
+    while out.count < count {
+      let seconds = dayStart + Double(day) * 86400 + Double(switchMinutes[index]) * 60
+      if seconds > date.timeIntervalSince1970 {
+        let candidate = Date(timeIntervalSince1970: seconds)
+        if isSwitchInstant(candidate) {
+          out.append(Switch(date: candidate, phase: phase(at: candidate)))
+        }
+      }
+      index += 1
+      if index >= switchMinutes.count {
+        index = 0
+        day += 1
+      }
+    }
+    return out
+  }
+
+  public static func currentWindow(at date: Date) -> CurrentWindow {
+    let next = nextSwitches(after: date, count: 1)[0]
+    return CurrentWindow(
+      phase: phase(at: date),
+      nextPhase: next.phase,
+      end: next.date,
+      minuteOfDay: minuteOfDay(date)
+    )
+  }
+
+  /// The instant the window you are in began. Walks back up to 21 days to cross
+  /// any weekend + holiday off-peak stretch.
+  public static func currentWindowStart(at date: Date) -> Date {
+    let dayStart = utcDayStart(date).timeIntervalSince1970
+    var best: Date?
+    for day in -21...0 {
+      for minute in switchMinutes {
+        let seconds = dayStart + Double(day) * 86400 + Double(minute) * 60
+        guard seconds <= date.timeIntervalSince1970 else { continue }
+        let candidate = Date(timeIntervalSince1970: seconds)
+        guard isSwitchInstant(candidate) else { continue }
+        if best == nil || seconds > best!.timeIntervalSince1970 {
+          best = candidate
+        }
+      }
+    }
+    return best ?? date.addingTimeInterval(-86400)
+  }
+
+  /// Windows as start/end pairs, opening with the active window.
+  public static func windows(at date: Date, count: Int) -> [PriceWindow] {
+    let upcoming = nextSwitches(after: date, count: count)
+    var start = currentWindowStart(at: date)
+    var phase = phase(at: date)
+    var out: [PriceWindow] = []
+    for index in 0..<count {
+      out.append(
+        PriceWindow(start: start, end: upcoming[index].date, phase: phase, isCurrent: index == 0))
+      start = upcoming[index].date
+      phase = upcoming[index].phase
+    }
+    return out
   }
 }
