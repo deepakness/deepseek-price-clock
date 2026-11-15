@@ -77,3 +77,41 @@ func date(_ ms: Int) -> Date { Date(timeIntervalSince1970: Double(ms) / 1000) }
     }
   }
 }
+
+struct SegmentsFixture: Decodable {
+  struct Segment: Decodable {
+    let start: Double
+    let end: Double
+    let phase: Phase
+  }
+  struct Case: Decodable {
+    let t: Int
+    let offset: Int
+    let segments: [Segment]
+  }
+  let cases: [Case]
+}
+
+@Test func displaySegmentsMatchPriceJsAtFourOffsets() throws {
+  let url = try #require(
+    Bundle.module.url(forResource: "segments", withExtension: "json", subdirectory: "Fixtures"))
+  let fixture = try JSONDecoder().decode(SegmentsFixture.self, from: Data(contentsOf: url))
+  #expect(Set(fixture.cases.map(\.offset)) == [0, 480, -300, 345])
+  for testCase in fixture.cases {
+    let segments = PriceClock.displaySegments(at: date(testCase.t), offsetMinutes: testCase.offset)
+    #expect(
+      segments.count == testCase.segments.count,
+      "t=\(testCase.t) offset=\(testCase.offset)")
+    for (segment, expected) in zip(segments, testCase.segments) {
+      #expect(segment.startMinute == expected.start, "t=\(testCase.t)")
+      #expect(segment.endMinute == expected.end, "t=\(testCase.t)")
+      #expect(segment.phase == expected.phase, "t=\(testCase.t)")
+    }
+  }
+}
+
+@Test func holidayRendersAsOneBar() {
+  // 2026-11-15T09:55Z is a Beijing Sunday: off-peak all day, one full-width segment.
+  let segments = PriceClock.displaySegments(at: date(1_794_736_500_000), offsetMinutes: 0)
+  #expect(segments == [DaySegment(startMinute: 0, endMinute: 1440, phase: .off)])
+}

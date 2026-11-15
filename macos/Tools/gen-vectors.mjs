@@ -84,8 +84,49 @@ function writeValidity() {
   return cases.length;
 }
 
-if (process.argv[2] === "--validity") {
+// Segments are generated one offset per process: price.js derives its day start
+// from the machine's local date, so TZ must equal the offset being sampled.
+function writeSegments(offset) {
+  const api = loadPriceJs();
+  const cases = [];
+  for (let t = RANGE_START; t < RANGE_END; t += 4 * 3600000) {
+    cases.push({
+      t,
+      offset,
+      segments: api.displaySegments(new Date(t), offset).map((segment) => ({
+        start: segment.start,
+        end: segment.end,
+        phase: segment.kind,
+      })),
+    });
+  }
+  const file = path.join(fixtures, "segments.json");
+  let existing = { cases: [] };
+  if (fs.existsSync(file)) existing = JSON.parse(fs.readFileSync(file, "utf8"));
+  writeJson("segments.json", { cases: existing.cases.concat(cases) });
+  return cases.length;
+}
+
+function writeAllSegments() {
+  const file = path.join(fixtures, "segments.json");
+  fs.rmSync(file, { force: true });
+  let total = 0;
+  for (const [offset, zone] of OFFSET_ZONES) {
+    execFileSync(process.execPath, [fileURLToPath(import.meta.url), "--segments", String(offset)], {
+      env: { ...process.env, TZ: zone },
+      stdio: "inherit",
+    });
+    total += 1;
+  }
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  return `${data.cases.length} cases across ${total} offsets`;
+}
+
+if (process.argv[2] === "--segments") {
+  process.stdout.write(String(writeSegments(Number(process.argv[3]))));
+} else if (process.argv[2] === "--validity") {
   process.stdout.write(String(writeValidity()));
 } else {
   process.stdout.write(`validity ${writeValidity()}\n`);
+  process.stdout.write(`segments ${writeAllSegments()}\n`);
 }

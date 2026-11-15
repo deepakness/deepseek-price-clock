@@ -23,6 +23,13 @@ public struct CurrentWindow: Sendable, Equatable {
   public let minuteOfDay: Int
 }
 
+/// One stretch of the 24-hour bar, in display-time minutes from local midnight.
+public struct DaySegment: Sendable, Equatable {
+  public let startMinute: Double
+  public let endMinute: Double
+  public let phase: Phase
+}
+
 public struct PriceWindow: Sendable, Equatable {
   public let start: Date
   public let end: Date
@@ -160,6 +167,50 @@ public enum PriceClock {
       }
     }
     return best ?? date.addingTimeInterval(-86400)
+  }
+
+  /// Rebuild the 24-hour day bar in display time (`offsetMinutes` ahead of UTC).
+  /// price.js derives the day start from the host's local date; with
+  /// `shifted = date + offset` the closed form below is the same instant, which
+  /// is what keeps the fixtures machine-independent.
+  public static func displaySegments(at date: Date, offsetMinutes: Int) -> [DaySegment] {
+    let offset = Double(offsetMinutes) * 60
+    let shifted = date.timeIntervalSince1970 + offset
+    let dayStart = (shifted / 86400).rounded(.down) * 86400 - offset
+
+    func normalised(_ minutes: Int) -> Double {
+      let wrapped = Double(minutes % 1440)
+      return wrapped < 0 ? wrapped + 1440 : wrapped
+    }
+
+    var boundaries: [Double] = [0, 1440]
+    for minute in switchMinutes {
+      boundaries.append(normalised(minute + offsetMinutes))
+    }
+    // 16:00 UTC is a boundary the popup bar draws but not a price switch.
+    boundaries.append(normalised(960 + offsetMinutes))
+    boundaries.sort()
+
+    var raw: [(start: Double, end: Double, phase: Phase)] = []
+    for index in 0..<(boundaries.count - 1) {
+      let start = boundaries[index]
+      let end = boundaries[index + 1]
+      guard end > start else { continue }
+      let sample = Date(timeIntervalSince1970: dayStart + (start + 0.5) * 60)
+      raw.append((start, end, phase(at: sample)))
+    }
+
+    var merged: [DaySegment] = []
+    for segment in raw {
+      if let last = merged.last, last.phase == segment.phase {
+        merged[merged.count - 1] = DaySegment(
+          startMinute: last.startMinute, endMinute: segment.end, phase: segment.phase)
+      } else {
+        merged.append(
+          DaySegment(startMinute: segment.start, endMinute: segment.end, phase: segment.phase))
+      }
+    }
+    return merged
   }
 
   /// Windows as start/end pairs, opening with the active window.
