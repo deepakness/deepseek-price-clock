@@ -122,6 +122,32 @@ function writeAllSegments() {
   return `${data.cases.length} cases across ${total} offsets`;
 }
 
+// popup.html is the single source of truth for prices: the app's rate table is
+// asserted against this extraction rather than retyped from the docs.
+function writeRates() {
+  const html = fs.readFileSync(path.join(repo, "popup.html"), "utf8");
+  const start = html.indexOf('<div class="ds-rates-now">');
+  const end = html.indexOf('<div class="ds-rates-next">');
+  if (start < 0 || end < start) throw new Error("could not find the rates-now block");
+  const block = html.slice(start, end);
+
+  const columns = [...block.matchAll(/<span class="ds-rate-kind"[^>]*>([^<]+)<\/span>/g)].map((m) =>
+    m[1].trim()
+  );
+  const names = [...block.matchAll(/<p class="ds-rate-name">([^<]+)<\/p>/g)].map((m) => m[1].trim());
+  const amounts = [...block.matchAll(/data-off="([^"]*)" data-peak="([^"]*)"/g)].map((m) => ({
+    off: m[1],
+    peak: m[2],
+  }));
+  const perModel = amounts.length / names.length;
+  const models = names.map((name, index) => ({
+    name,
+    rates: amounts.slice(index * perModel, (index + 1) * perModel),
+  }));
+  writeJson("rates.json", { columns, models });
+  return `${models.length} models × ${perModel} columns`;
+}
+
 if (process.argv[2] === "--segments") {
   process.stdout.write(String(writeSegments(Number(process.argv[3]))));
 } else if (process.argv[2] === "--validity") {
@@ -129,4 +155,5 @@ if (process.argv[2] === "--segments") {
 } else {
   process.stdout.write(`validity ${writeValidity()}\n`);
   process.stdout.write(`segments ${writeAllSegments()}\n`);
+  process.stdout.write(`rates ${writeRates()}\n`);
 }

@@ -115,3 +115,26 @@ struct SegmentsFixture: Decodable {
   let segments = PriceClock.displaySegments(at: date(1_794_736_500_000), offsetMinutes: 0)
   #expect(segments == [DaySegment(startMinute: 0, endMinute: 1440, phase: .off)])
 }
+
+struct RatesFixture: Decodable {
+  struct Model: Decodable {
+    let name: String
+    let rates: [Rate]
+  }
+  let columns: [String]
+  let models: [Model]
+}
+
+@Test func rateTableMatchesPopupHtml() throws {
+  let url = try #require(
+    Bundle.module.url(forResource: "rates", withExtension: "json", subdirectory: "Fixtures"))
+  let fixture = try JSONDecoder().decode(RatesFixture.self, from: Data(contentsOf: url))
+  #expect(RateTable.columns == fixture.columns)
+  #expect(RateTable.models.map(\.name) == fixture.models.map(\.name))
+  #expect(RateTable.models.flatMap(\.rates) == fixture.models.flatMap(\.rates))
+}
+
+@Test func peakRatesAreDoubleOffPeak() {
+  #expect(RateTable.amount(RateTable.models[0].rates[0], phase: .off) == "$0.15")
+  #expect(RateTable.amount(RateTable.models[0].rates[0], phase: .peak) == "$0.30")
+}
