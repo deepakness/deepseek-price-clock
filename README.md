@@ -44,13 +44,37 @@ If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it
 
 ## macOS menu-bar app
 
-There is a native menu-bar version of the same clock: green whale for off-peak, red for
-peak, click for the countdown, timeline, price windows and rates. Build it with
-`cd macos && ./build.sh`, then see [`macos/README.md`](macos/README.md) for installing,
-tests and the notification caveat. It is ad-hoc signed, not notarized: copying it to
-another Mac means clearing the quarantine flag first
-(`xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"`). It shares the price logic: the Swift port
-is checked against `price.js` by generated fixtures.
+There is a native version of the same clock for the Mac menu bar: green whale for
+off-peak, red for peak, and a click-through panel with the countdown, the 24-hour
+timeline, the upcoming price windows and the current rates. It has the same brain as the
+extension — the Swift port of `price.js` is checked against the JavaScript by generated
+fixtures, so the two cannot drift apart.
+
+**Requirements:** macOS 14 or newer, Xcode 27 (Swift 6.3), Node only to regenerate the
+fixtures.
+
+```sh
+git clone https://github.com/deepakness/deepseek-price-clock.git
+cd deepseek-price-clock/macos
+./build.sh
+cp -R "build/DeepSeek Price Clock.app" /Applications/
+open "/Applications/DeepSeek Price Clock.app"
+```
+
+`swift test` in `macos/` runs 17 tests, most of them parity checks against `price.js`.
+
+> [!IMPORTANT]
+> **The app is unsigned.** It is ad-hoc signed, not notarized, so Gatekeeper has no idea
+> who made it. Built on the Mac that runs it, that is fine. Copied to another Mac,
+> downloaded, or sent over AirDrop, macOS refuses to open it until you clear the flag:
+>
+> ```sh
+> xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"
+> ```
+>
+> Or System Settings → Privacy & Security → **Open Anyway**. See
+> [`macos/README.md`](macos/README.md) for signing with a stable identity, the
+> notification behaviour, and the yearly holiday upkeep.
 
 ## How it works
 
