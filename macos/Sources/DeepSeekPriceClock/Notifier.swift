@@ -40,18 +40,10 @@ final class Notifier {
     }
   }
 
-  /// Writes a line to /tmp/deepseek-notify.log so a probe run can be read back
-  /// without attaching to the process.
+  /// Logs to the unified system log (Console.app, filter "DeepSeek Price Clock")
+  /// instead of writing files.
   func probeLog(_ line: String) {
-    let path = "/tmp/deepseek-notify.log"
-    let entry = "\(Date()) \(line)\n"
-    if let handle = FileHandle(forWritingAtPath: path) {
-      handle.seekToEndOfFile()
-      handle.write(Data(entry.utf8))
-      handle.closeFile()
-    } else {
-      try? entry.write(toFile: path, atomically: true, encoding: .utf8)
-    }
+    NSLog("DeepSeek Price Clock: %@", line)
   }
 
   func requestAuthorization() async -> Bool {

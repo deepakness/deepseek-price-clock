@@ -1,0 +1,65 @@
+name: macOS Release
+
+# Push a tag like macos-v1.0.0 (matching CFBundleShortVersionString in
+# macos/Resources/Info.plist) to test and build the menu-bar app on a GitHub
+# macOS runner and attach DeepSeek-Price-Clock-macOS.zip to a pre-release.
+# The release is never marked as latest, so the extension's
+# releases/latest/download/... links keep working. Run manually with an
+# existing tag to rebuild and re-upload.
+
+on:
+  push:
+    tags: ["macos-v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build, e.g. macos-v1.0.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Check tag matches app version
+        run: |
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" macos/Resources/Info.plist)
+          if [ "macos-v$version" != "$TAG" ]; then
+            echo "Tag $TAG does not match app version $version"
+            exit 1
+          fi
+
+      - name: Toolchain
+        run: xcodebuild -version && swift --version
+
+      - name: Test
+        working-directory: macos
+        run: swift test
+
+      - name: Build app
+        working-directory: macos
+        run: ./build.sh
+
+      - name: Zip app
+        working-directory: macos/build
+        run: ditto -c -k --keepParent "DeepSeek Price Clock.app" ../../DeepSeek-Price-Clock-macOS.zip
+
+      - name: Create or update release
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" DeepSeek-Price-Clock-macOS.zip --clobber
+          else
+            gh release create "$TAG" DeepSeek-Price-Clock-macOS.zip \
+              --title "DeepSeek Price Clock for macOS ${TAG#macos-}" \
+              --notes-file macos/RELEASE_NOTES.md \
+              --prerelease --latest=false
+          fi

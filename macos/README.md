@@ -24,10 +24,18 @@ and the Swift port is checked against it (see [Parity](#parity)).
 > If you want the warning gone for good you need your own Developer ID certificate and
 > a notarization round trip, which this repo deliberately does not do.
 
+> [!WARNING]
+> **Experimental.** This app is new and has not been tested on many Macs. If you hit a
+> problem, please [open an issue](https://github.com/deepakness/deepseek-price-clock/issues/new)
+> with your macOS version and what you saw. Most people should download the ready-made
+> app from the [releases](https://github.com/deepakness/deepseek-price-clock/releases)
+> instead of building it (see the root README).
+
 ## Requirements
 
 - macOS 14 or newer
-- Xcode 27 (for Swift 6.3)
+- Full Xcode (Swift 6 or newer). The Command Line Tools alone are not enough: they lack
+  SwiftUI's macro plugin and the build fails with `plugin for module 'SwiftUIMacros' not found`.
 - Node, only for regenerating the parity fixtures
 
 ## Build and install
@@ -66,7 +74,7 @@ registration. Both need the assembled `.app`.
 swift test
 ```
 
-Fifteen tests, and the interesting ones are parity tests: `Tools/gen-vectors.mjs` runs
+Seventeen tests, and the interesting ones are parity tests: `Tools/gen-vectors.mjs` runs
 the real `../price.js` in a node `vm` and writes the fixtures the Swift tests compare
 against.
 

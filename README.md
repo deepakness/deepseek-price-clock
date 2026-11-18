@@ -1,6 +1,6 @@
 # DeepSeek Price Clock
 
-Chrome and Firefox extension (Manifest V3) that shows DeepSeek API pricing at a glance. The toolbar icon shows the DeepSeek whale on green during off-peak (half price) and on red during peak, so one look tells you whether to run the job now or queue it for the cheap window.
+Chrome and Firefox extension (Manifest V3) that shows DeepSeek API pricing at a glance. The toolbar icon shows the DeepSeek whale on green during off-peak (half price) and on red during peak, so one look tells you whether to run the job now or queue it for the cheap window. An experimental [Mac menu-bar version](#macos-menu-bar-app) is also available.
 
 <img width="363" height="134" alt="Toolbar icon: green whale for off-peak, red whale for peak" src="https://github.com/user-attachments/assets/c7245722-88d9-4473-bc2b-82cdc9695522" />
 
@@ -44,37 +44,32 @@ If a release has no `.xpi` yet, unzip `deepseek-price-clock-firefox.zip` from it
 
 ## macOS menu-bar app
 
-There is a native version of the same clock for the Mac menu bar: green whale for
-off-peak, red for peak, and a click-through panel with the countdown, the 24-hour
-timeline, the upcoming price windows and the current rates. It has the same brain as the
-extension — the Swift port of `price.js` is checked against the JavaScript by generated
-fixtures, so the two cannot drift apart.
+The same clock also runs as a native Mac menu-bar app, no browser needed. The menu bar shows a green whale for off-peak and a red whale for peak. Click it for the countdown, the 24-hour timeline, the upcoming price windows and the current rates. It can also notify you when the price flips and start at login.
 
-**Requirements:** macOS 14 or newer, Xcode 27 (Swift 6.3), Node only to regenerate the
-fixtures.
+> [!WARNING]
+> **Experimental.** The Mac app was contributed by the community and is new. It has automated tests, but it has not been tried on many Macs yet, so you may run into issues. If something looks wrong, please [open an issue](https://github.com/deepakness/deepseek-price-clock/issues/new) with your macOS version and what you saw.
 
-```sh
-git clone https://github.com/deepakness/deepseek-price-clock.git
-cd deepseek-price-clock/macos
-./build.sh
-cp -R "build/DeepSeek Price Clock.app" /Applications/
-open "/Applications/DeepSeek Price Clock.app"
-```
+Requires macOS 14 (Sonoma) or newer on an Apple Silicon Mac (M1 or later).
 
-`swift test` in `macos/` runs 17 tests, most of them parity checks against `price.js`.
+### Install
 
-> [!IMPORTANT]
-> **The app is unsigned.** It is ad-hoc signed, not notarized, so Gatekeeper has no idea
-> who made it. Built on the Mac that runs it, that is fine. Copied to another Mac,
-> downloaded, or sent over AirDrop, macOS refuses to open it until you clear the flag:
->
-> ```sh
-> xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"
-> ```
->
-> Or System Settings → Privacy & Security → **Open Anyway**. See
-> [`macos/README.md`](macos/README.md) for signing with a stable identity, the
-> notification behaviour, and the yearly holiday upkeep.
+1. Download [`DeepSeek-Price-Clock-macOS.zip`](https://github.com/deepakness/deepseek-price-clock/releases/download/macos-v1.0.0/DeepSeek-Price-Clock-macOS.zip) from the [macOS release](https://github.com/deepakness/deepseek-price-clock/releases/tag/macos-v1.0.0) and double-click it to unzip.
+2. Drag **DeepSeek Price Clock.app** into your **Applications** folder.
+3. Open it. macOS will block it the first time, because the app is not signed or notarized with Apple (that costs a paid developer account). To allow it, open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to the DeepSeek Price Clock message. Or run this once in Terminal:
+
+   ```sh
+   xattr -dr com.apple.quarantine "/Applications/DeepSeek Price Clock.app"
+   ```
+
+4. Look for the whale in the menu bar, at the top right of the screen. The app has no Dock icon and no window of its own.
+
+In the panel you can switch between Local and UTC time, turn on **Notify me when the price flips** (macOS asks for permission the first time), and tick **Launch at login**.
+
+To update, quit the app from its panel, replace the app in Applications with the newer download, and open it again. You may need to allow it in Privacy & Security once more.
+
+To uninstall, untick **Launch at login**, click **Quit** in the panel, and move the app from Applications to the Trash.
+
+To build it yourself from source (needs full Xcode, not only the Command Line Tools), see [`macos/README.md`](macos/README.md).
 
 ## How it works
 
@@ -91,6 +86,8 @@ open "/Applications/DeepSeek Price Clock.app"
 2. Tag and push: `git tag v1.3.1 && git push origin v1.3.1` (the tag must match the version).
 3. The [Release workflow](.github/workflows/release.yml) builds both browsers and attaches `deepseek-price-clock-chrome.zip` and `deepseek-price-clock-firefox.zip` to a new GitHub release.
 4. Run `./sign-firefox.sh` locally. It has Mozilla sign the Firefox build as an unlisted add-on and attaches `deepseek-price-clock-firefox.xpi` to the same release. It reads [AMO API keys](https://addons.mozilla.org/developers/addon/api/key/) from the macOS Keychain; the top of the script shows how to store them. Mozilla signs each version only once.
+
+The Mac app is released separately. Bump `CFBundleShortVersionString` in `macos/Resources/Info.plist`, then tag and push `macos-vX.Y.Z` with the same version. The [macOS Release workflow](.github/workflows/macos-release.yml) runs the tests, builds the app on a GitHub macOS runner, and attaches `DeepSeek-Price-Clock-macOS.zip` to a pre-release that is never marked as latest, so the extension download links keep working. Update the version in the README's macOS download link afterwards.
 
 ## License
 

@@ -41,6 +41,14 @@ does not affect the extension build: no root runtime file moves, and `RUNTIME_FI
   in `macos/`.
 - Yearly holiday maintenance now touches `price.js` and then the fixtures; the Swift
   constants are checked against them, so a forgotten update fails `swift test`.
+- Building needs full Xcode. The Command Line Tools alone fail with `plugin for module
+  'SwiftUIMacros' not found`, because SwiftUI's `@State` macro plugin ships only with Xcode.
+- Release: bump `CFBundleShortVersionString` in `macos/Resources/Info.plist`, then push a
+  matching `macos-vX.Y.Z` tag. `.github/workflows/macos-release.yml` runs `swift test`,
+  builds on a GitHub macOS runner and attaches `DeepSeek-Price-Clock-macOS.zip` to a
+  pre-release with `--latest=false`, so `releases/latest/download/...` links keep pointing
+  at the extension. The `v*` extension workflow does not match `macos-v*` tags. Update the
+  versioned download link in the root README after each Mac release.
 - Notifications: `UNUserNotificationCenter` may refuse a locally signed app outright on
   some macOS builds (`UNErrorDomain` code 1). The panel shows its own flip strip as a
   fallback and `macos/README.md` documents it.
